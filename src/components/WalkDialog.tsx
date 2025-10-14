@@ -69,11 +69,29 @@ export function WalkDialog({ open, onConfirm, onCancel }: WalkDialogProps) {
                   <Check className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
-              <div className="text-5xl">
-                {person === "Deva" && "👧"}
-                {person === "Kristy" && "👩"}
-                {person === "Per" && "👨"}
-                {person === "Other" && "🙋"}
+              <div className="w-24 h-24 flex items-center justify-center">
+                {person === "Deva" && (
+                  <img 
+                    src="/deva.JPG" 
+                    alt="Deva" 
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                )}
+                {person === "Kristy" && (
+                  <img 
+                    src="/kristy.jpeg" 
+                    alt="Kristy" 
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                )}
+                {person === "Per" && (
+                  <img 
+                    src="/per.jpeg" 
+                    alt="Per" 
+                    className="w-full h-full object-cover rounded-full"
+                  />
+                )}
+                {person === "Other" && <div className="text-6xl">🤗</div>}
               </div>
               <span className="text-xl font-bold">{person}</span>
             </button>
