@@ -141,71 +141,83 @@ const Index = () => {
   const isOverdue = timeRemaining === 0 && !isQuietHours && !timerPaused;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
-      <div className="w-full max-w-2xl space-y-8 text-center">
-        {/* Header */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <Dog className="w-12 h-12 text-primary" />
-            <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
-              Dog Walk Tracker
-            </h1>
-          </div>
-          
-          {/* Last walk info */}
-          <p className="text-xl text-muted-foreground">
-            <span className="font-semibold">Last walk:</span>{" "}
-            {formatLastWalk(lastWalkTime)}
-          </p>
-        </div>
+    <div className="min-h-screen bg-background flex">
+      {/* Left side - Dog image */}
+      <div className="w-1/3 min-h-screen relative">
+        <img 
+          src="/DERPDOG.jpeg" 
+          alt="Derpdog" 
+          className="w-full h-full object-cover"
+        />
+      </div>
 
-        {/* Overdue alert */}
-        {isOverdue && (
-          <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-3xl p-8 shadow-lg animate-pulse">
-            <AlertCircle className="w-16 h-16 mx-auto mb-4" />
-            <h2 className="text-4xl font-extrabold">
-              DOG NEEDS A WALK! &lt;3
-            </h2>
-          </div>
-        )}
-
-        {/* Quiet hours message */}
-        {isQuietHours && (
-          <div className="bg-accent/10 border-4 border-accent rounded-3xl p-6">
-            <p className="text-2xl font-bold text-accent-foreground">
-              🌙 Quiet hours — timer paused until morning
+      {/* Right side - Main content */}
+      <div className="flex-1 flex flex-col items-center justify-center p-6">
+        <div className="w-full max-w-2xl space-y-8 text-center">
+          {/* Header */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Dog className="w-12 h-12 text-primary" />
+              <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
+                Dog Walk Tracker
+              </h1>
+            </div>
+            
+            {/* Last walk info */}
+            <p className="text-xl text-muted-foreground">
+              <span className="font-semibold">Last walk:</span>{" "}
+              {formatLastWalk(lastWalkTime)}
             </p>
           </div>
-        )}
 
-        {/* Timer display */}
-        <div className="bg-card border-4 border-border rounded-3xl p-12 shadow-[var(--shadow-soft)]">
-          <div className="text-8xl md:text-9xl font-black text-foreground tabular-nums tracking-tight">
-            {formatTime(timeRemaining)}
+          {/* Overdue alert */}
+          {isOverdue && (
+            <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-3xl p-8 shadow-lg animate-pulse">
+              <AlertCircle className="w-16 h-16 mx-auto mb-4" />
+              <h2 className="text-4xl font-extrabold">
+                DOG NEEDS A WALK! &lt;3
+              </h2>
+            </div>
+          )}
+
+          {/* Quiet hours message */}
+          {isQuietHours && (
+            <div className="bg-accent/10 border-4 border-accent rounded-3xl p-6">
+              <p className="text-2xl font-bold text-accent-foreground">
+                🌙 Quiet hours — timer paused until morning
+              </p>
+            </div>
+          )}
+
+          {/* Timer display */}
+          <div className="bg-card border-4 border-border rounded-3xl p-12 shadow-[var(--shadow-soft)]">
+            <div className="text-8xl md:text-9xl font-black text-foreground tabular-nums tracking-tight">
+              {formatTime(timeRemaining)}
+            </div>
+            <p className="text-2xl text-muted-foreground mt-4 font-semibold">
+              until next walk
+            </p>
           </div>
-          <p className="text-2xl text-muted-foreground mt-4 font-semibold">
-            until next walk
-          </p>
+
+          {/* Walked button */}
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            size="lg"
+            className="w-full h-24 text-4xl font-extrabold rounded-3xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200 hover:scale-105"
+          >
+            WALKED
+          </Button>
+
+          {/* Dev button */}
+          <Button
+            onClick={setTimerToFiveSeconds}
+            variant="outline"
+            size="sm"
+            className="text-sm"
+          >
+            Dev: Set timer to 5 seconds
+          </Button>
         </div>
-
-        {/* Walked button */}
-        <Button
-          onClick={() => setIsDialogOpen(true)}
-          size="lg"
-          className="w-full h-24 text-4xl font-extrabold rounded-3xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200 hover:scale-105"
-        >
-          WALKED
-        </Button>
-
-        {/* Dev button */}
-        <Button
-          onClick={setTimerToFiveSeconds}
-          variant="outline"
-          size="sm"
-          className="text-sm"
-        >
-          Dev: Set timer to 5 seconds
-        </Button>
       </div>
 
       <WalkDialog
