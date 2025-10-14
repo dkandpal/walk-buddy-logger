@@ -4,6 +4,15 @@ import { WalkDialog } from "@/components/WalkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dog, AlertCircle } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  type CarouselApi,
+} from "@/components/ui/carousel";
+import { useQuery } from "@tanstack/react-query";
 
 const FOUR_HOURS_IN_MS = 4 * 60 * 60 * 1000;
 const QUIET_START_HOUR = 22; // 10:30 PM (we'll check minutes too)
@@ -16,6 +25,22 @@ const Index = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isQuietHours, setIsQuietHours] = useState(false);
   const [timerPaused, setTimerPaused] = useState(false);
+  const [api, setApi] = useState<CarouselApi>();
+
+  // Poll Raspberry Pi for now playing info
+  const { data: nowPlaying } = useQuery({
+    queryKey: ["now-playing"],
+    queryFn: async () => {
+      const res = await fetch("http://192.168.0.169:8080/nowplaying");
+      return res.json() as Promise<{
+        playing: boolean;
+        title?: string;
+        artist?: string;
+        image?: string;
+      }>;
+    },
+    refetchInterval: 3000,
+  });
 
   // Load last walk from database
   useEffect(() => {
@@ -53,6 +78,27 @@ const Index = () => {
     
     return isAfterQuietStart || isBeforeQuietEnd;
   }, []);
+
+  // Auto-switch to Now Playing slide when music is playing
+  useEffect(() => {
+    if (!api) return;
+    if (nowPlaying?.playing) {
+      api.scrollTo(1);
+    } else {
+      api.scrollTo(0);
+    }
+  }, [nowPlaying?.playing, api]);
+
+  // Auto-rotate slides every 8 seconds when music isn't playing
+  useEffect(() => {
+    if (!api || nowPlaying?.playing) return;
+    const timer = setInterval(() => {
+      const current = api.selectedScrollSnap();
+      const next = (current + 1) % 2;
+      api.scrollTo(next);
+    }, 8000);
+    return () => clearInterval(timer);
+  }, [nowPlaying?.playing, api]);
 
   // Timer countdown logic
   useEffect(() => {
@@ -141,91 +187,129 @@ const Index = () => {
   const isOverdue = timeRemaining === 0 && !isQuietHours && !timerPaused;
 
   return (
-    <div className="h-screen bg-background flex overflow-hidden">
-      {/* Left side - Dog image */}
-      <div className="w-[35%] h-screen relative flex-shrink-0">
-        <img 
-          src="/DERPDOG.jpeg" 
-          alt="Derpdog" 
-          className="w-full h-full object-cover"
-        />
-      </div>
+    <>
+      <Carousel setApi={setApi} className="h-screen overflow-hidden">
+        <CarouselContent>
+          {/* Slide 1: Dog Walk Tracker */}
+          <CarouselItem className="h-screen">
+            <div className="h-screen bg-background flex overflow-hidden">
+              {/* Left side - Dog image */}
+              <div className="w-[35%] h-screen relative flex-shrink-0">
+                <img 
+                  src="/DERPDOG.jpeg" 
+                  alt="Derpdog" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
 
-      {/* Right side - Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-3 overflow-y-auto">
-        <div className="w-full space-y-3 text-center">
-          {/* Header */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-center gap-2">
-              <Dog className="w-6 h-6 text-primary" />
-              <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
-                Dog Walk Tracker
-              </h1>
+              {/* Right side - Main content */}
+              <div className="flex-1 flex flex-col items-center justify-center p-3 overflow-y-auto">
+                <div className="w-full space-y-3 text-center">
+                  {/* Header */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-center gap-2">
+                      <Dog className="w-6 h-6 text-primary" />
+                      <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
+                        Dog Walk Tracker
+                      </h1>
+                    </div>
+                    
+                    {/* Last walk info */}
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-semibold">Last walk:</span>{" "}
+                      {formatLastWalk(lastWalkTime)}
+                    </p>
+                  </div>
+
+                  {/* Overdue alert */}
+                  {isOverdue && (
+                    <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-2xl p-4 shadow-lg animate-pulse">
+                      <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+                      <h2 className="text-xl font-extrabold">
+                        DOG NEEDS A WALK! &lt;3
+                      </h2>
+                    </div>
+                  )}
+
+                  {/* Quiet hours message */}
+                  {isQuietHours && (
+                    <div className="bg-accent/10 border-2 border-accent rounded-2xl p-3">
+                      <p className="text-sm font-bold text-accent-foreground">
+                        🌙 Quiet hours — timer paused
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Timer display */}
+                  <div className="bg-card border-2 border-border rounded-2xl p-6 shadow-[var(--shadow-soft)]">
+                    <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
+                      {formatTime(timeRemaining)}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-2 font-semibold">
+                      until next walk
+                    </p>
+                  </div>
+
+                  {/* Walked button */}
+                  <Button
+                    onClick={() => setIsDialogOpen(true)}
+                    size="lg"
+                    className="w-full h-16 text-2xl font-extrabold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200"
+                  >
+                    WALKED
+                  </Button>
+
+                  {/* Dev button */}
+                  <Button
+                    onClick={setTimerToFiveSeconds}
+                    variant="outline"
+                    size="sm"
+                    className="text-xs"
+                  >
+                    Dev: Set timer to 5 seconds
+                  </Button>
+                </div>
+              </div>
             </div>
-            
-            {/* Last walk info */}
-            <p className="text-sm text-muted-foreground">
-              <span className="font-semibold">Last walk:</span>{" "}
-              {formatLastWalk(lastWalkTime)}
-            </p>
-          </div>
+          </CarouselItem>
 
-          {/* Overdue alert */}
-          {isOverdue && (
-            <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-2xl p-4 shadow-lg animate-pulse">
-              <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-              <h2 className="text-xl font-extrabold">
-                DOG NEEDS A WALK! &lt;3
+          {/* Slide 2: Now Playing */}
+          <CarouselItem className="flex items-center justify-center h-screen bg-background">
+            <div className="flex flex-col items-center justify-center text-center gap-6 px-4">
+              {nowPlaying?.image ? (
+                <img
+                  src={nowPlaying.image}
+                  alt="Album Art"
+                  className="max-w-xs rounded-2xl shadow-xl"
+                />
+              ) : (
+                <div className="w-64 h-64 flex items-center justify-center rounded-2xl bg-muted/20">
+                  <span className="text-6xl">🎵</span>
+                </div>
+              )}
+              <h2 className="text-3xl font-extrabold text-foreground">
+                {nowPlaying?.title ?? "—"}
               </h2>
-            </div>
-          )}
-
-          {/* Quiet hours message */}
-          {isQuietHours && (
-            <div className="bg-accent/10 border-2 border-accent rounded-2xl p-3">
-              <p className="text-sm font-bold text-accent-foreground">
-                🌙 Quiet hours — timer paused
+              <p className="text-xl text-muted-foreground">
+                {nowPlaying?.artist ?? "—"}
+              </p>
+              <p className="text-sm text-muted-foreground/60">
+                {nowPlaying?.playing ? "Now Playing" : "Paused / Not Playing"}
               </p>
             </div>
-          )}
-
-          {/* Timer display */}
-          <div className="bg-card border-2 border-border rounded-2xl p-6 shadow-[var(--shadow-soft)]">
-            <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
-              {formatTime(timeRemaining)}
-            </div>
-            <p className="text-sm text-muted-foreground mt-2 font-semibold">
-              until next walk
-            </p>
-          </div>
-
-          {/* Walked button */}
-          <Button
-            onClick={() => setIsDialogOpen(true)}
-            size="lg"
-            className="w-full h-16 text-2xl font-extrabold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200"
-          >
-            WALKED
-          </Button>
-
-          {/* Dev button */}
-          <Button
-            onClick={setTimerToFiveSeconds}
-            variant="outline"
-            size="sm"
-            className="text-xs"
-          >
-            Dev: Set timer to 5 seconds
-          </Button>
-        </div>
-      </div>
+          </CarouselItem>
+        </CarouselContent>
+        
+        <CarouselPrevious className="left-4" />
+        <CarouselNext className="right-4" />
+      </Carousel>
 
       <WalkDialog
         open={isDialogOpen}
         onConfirm={handleWalkConfirm}
         onCancel={() => setIsDialogOpen(false)}
       />
-    </div>
+    </>
   );
 };
 
