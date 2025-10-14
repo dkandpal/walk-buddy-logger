@@ -141,9 +141,9 @@ const Index = () => {
   const isOverdue = timeRemaining === 0 && !isQuietHours && !timerPaused;
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       {/* Left side - Dog image */}
-      <div className="w-1/3 min-h-screen relative">
+      <div className="w-[35%] h-screen relative flex-shrink-0">
         <img 
           src="/DERPDOG.jpeg" 
           alt="Derpdog" 
@@ -152,19 +152,19 @@ const Index = () => {
       </div>
 
       {/* Right side - Main content */}
-      <div className="flex-1 flex flex-col items-center justify-center p-6">
-        <div className="w-full max-w-2xl space-y-8 text-center">
+      <div className="flex-1 flex flex-col items-center justify-center p-3 overflow-y-auto">
+        <div className="w-full space-y-3 text-center">
           {/* Header */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Dog className="w-12 h-12 text-primary" />
-              <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
+          <div className="space-y-1">
+            <div className="flex items-center justify-center gap-2">
+              <Dog className="w-6 h-6 text-primary" />
+              <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
                 Dog Walk Tracker
               </h1>
             </div>
             
             {/* Last walk info */}
-            <p className="text-xl text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               <span className="font-semibold">Last walk:</span>{" "}
               {formatLastWalk(lastWalkTime)}
             </p>
@@ -172,9 +172,9 @@ const Index = () => {
 
           {/* Overdue alert */}
           {isOverdue && (
-            <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-3xl p-8 shadow-lg animate-pulse">
-              <AlertCircle className="w-16 h-16 mx-auto mb-4" />
-              <h2 className="text-4xl font-extrabold">
+            <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-2xl p-4 shadow-lg animate-pulse">
+              <AlertCircle className="w-8 h-8 mx-auto mb-2" />
+              <h2 className="text-xl font-extrabold">
                 DOG NEEDS A WALK! &lt;3
               </h2>
             </div>
@@ -182,19 +182,19 @@ const Index = () => {
 
           {/* Quiet hours message */}
           {isQuietHours && (
-            <div className="bg-accent/10 border-4 border-accent rounded-3xl p-6">
-              <p className="text-2xl font-bold text-accent-foreground">
-                🌙 Quiet hours — timer paused until morning
+            <div className="bg-accent/10 border-2 border-accent rounded-2xl p-3">
+              <p className="text-sm font-bold text-accent-foreground">
+                🌙 Quiet hours — timer paused
               </p>
             </div>
           )}
 
           {/* Timer display */}
-          <div className="bg-card border-4 border-border rounded-3xl p-12 shadow-[var(--shadow-soft)]">
-            <div className="text-8xl md:text-9xl font-black text-foreground tabular-nums tracking-tight">
+          <div className="bg-card border-2 border-border rounded-2xl p-6 shadow-[var(--shadow-soft)]">
+            <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
               {formatTime(timeRemaining)}
             </div>
-            <p className="text-2xl text-muted-foreground mt-4 font-semibold">
+            <p className="text-sm text-muted-foreground mt-2 font-semibold">
               until next walk
             </p>
           </div>
@@ -203,7 +203,7 @@ const Index = () => {
           <Button
             onClick={() => setIsDialogOpen(true)}
             size="lg"
-            className="w-full h-24 text-4xl font-extrabold rounded-3xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200 hover:scale-105"
+            className="w-full h-16 text-2xl font-extrabold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200"
           >
             WALKED
           </Button>
@@ -213,7 +213,7 @@ const Index = () => {
             onClick={setTimerToFiveSeconds}
             variant="outline"
             size="sm"
-            className="text-sm"
+            className="text-xs"
           >
             Dev: Set timer to 5 seconds
           </Button>
