@@ -31,15 +31,23 @@ const Index = () => {
   const { data: nowPlaying } = useQuery({
     queryKey: ["now-playing"],
     queryFn: async () => {
-      const res = await fetch("http://192.168.0.169:8080/nowplaying");
-      return res.json() as Promise<{
-        playing: boolean;
-        title?: string;
-        artist?: string;
-        image?: string;
-      }>;
+      try {
+        const res = await fetch("http://192.168.0.169:8080/nowplaying");
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json() as Promise<{
+          playing: boolean;
+          title?: string;
+          artist?: string;
+          image?: string;
+        }>;
+      } catch (error) {
+        console.log('Now playing fetch failed:', error);
+        return { playing: false, title: null, artist: null, image: null };
+      }
     },
     refetchInterval: 3000,
+    retry: 1,
+    retryDelay: 1000,
   });
 
   // Load last walk from database
