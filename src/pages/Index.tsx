@@ -27,12 +27,12 @@ const Index = () => {
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
 
-  // Poll Raspberry Pi for now playing info
+  // Poll PC server for now playing info
   const { data: nowPlaying } = useQuery({
     queryKey: ["now-playing"],
     queryFn: async () => {
       try {
-        const res = await fetch("http://192.168.0.169:8080/nowplaying");
+        const res = await fetch("http://192.168.0.102:5000/display");
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json() as Promise<{
           playing: boolean;
