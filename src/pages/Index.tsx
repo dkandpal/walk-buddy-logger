@@ -27,12 +27,14 @@ const Index = () => {
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
 
+  const NOWPLAYING_URL = import.meta.env.VITE_NOWPLAYING_URL || "http://192.168.0.102:5000/display";
+
   // Poll PC server for now playing info
   const { data: nowPlaying } = useQuery({
     queryKey: ["now-playing"],
     queryFn: async () => {
       try {
-        const res = await fetch("http://192.168.0.102:5000/display");
+        const res = await fetch(NOWPLAYING_URL);
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json() as Promise<{
           playing: boolean;
