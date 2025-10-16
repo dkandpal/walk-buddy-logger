@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      spotify_tokens: {
+        Row: {
+          access_token: string
+          created_at: string | null
+          expires_at: string
+          id: string
+          refresh_token: string
+          updated_at: string | null
+        }
+        Insert: {
+          access_token: string
+          created_at?: string | null
+          expires_at: string
+          id?: string
+          refresh_token: string
+          updated_at?: string | null
+        }
+        Update: {
+          access_token?: string
+          created_at?: string | null
+          expires_at?: string
+          id?: string
+          refresh_token?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       walks: {
         Row: {
           created_at: string
