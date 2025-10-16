@@ -27,24 +27,24 @@ const Index = () => {
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
 
-  const NOWPLAYING_URL = import.meta.env.VITE_NOWPLAYING_URL || "http://192.168.0.102:5000/display";
-
-  // Poll PC server for now playing info
+  // Poll Spotify for now playing info
   const { data: nowPlaying } = useQuery({
     queryKey: ["now-playing"],
     queryFn: async () => {
       try {
-        const res = await fetch(NOWPLAYING_URL);
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify-auth`);
         if (!res.ok) throw new Error('Failed to fetch');
-        return res.json() as Promise<{
-          playing: boolean;
-          title?: string;
-          artist?: string;
-          image?: string;
-        }>;
+        const data = await res.json();
+        return {
+          connected: data.connected || false,
+          playing: data.playing || false,
+          title: data.title || '',
+          artist: data.artist || '',
+          image: data.image || '',
+        };
       } catch (error) {
-        console.log('Now playing fetch failed:', error);
-        return { playing: false, title: null, artist: null, image: null };
+        console.log('Spotify fetch failed:', error);
+        return { connected: false, playing: false, title: '', artist: '', image: '' };
       }
     },
     refetchInterval: 3000,
@@ -87,6 +87,16 @@ const Index = () => {
     const isBeforeQuietEnd = hour < QUIET_END_HOUR;
     
     return isAfterQuietStart || isBeforeQuietEnd;
+  }, []);
+
+  // Check for Spotify connection success
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('spotify_connected') === 'true') {
+      toast.success('Spotify connected successfully!');
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
   }, []);
 
   // Auto-switch to Now Playing slide when music is playing
@@ -286,26 +296,51 @@ const Index = () => {
           {/* Slide 2: Now Playing */}
           <CarouselItem className="flex items-center justify-center h-screen bg-background">
             <div className="flex flex-col items-center justify-center text-center gap-6 px-4">
-              {nowPlaying?.image ? (
-                <img
-                  src={nowPlaying.image}
-                  alt="Album Art"
-                  className="max-w-xs rounded-2xl shadow-xl"
-                />
+              {!nowPlaying?.connected ? (
+                <>
+                  <div className="w-64 h-64 flex items-center justify-center rounded-2xl bg-muted/20">
+                    <span className="text-6xl">🎵</span>
+                  </div>
+                  <h2 className="text-3xl font-extrabold text-foreground">
+                    Connect Spotify
+                  </h2>
+                  <p className="text-lg text-muted-foreground max-w-md">
+                    Sign in to Spotify to display what you're currently listening to on the kiosk
+                  </p>
+                  <Button
+                    onClick={() => {
+                      window.location.href = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify-auth?action=login`;
+                    }}
+                    size="lg"
+                    className="w-64 h-14 text-xl font-bold rounded-2xl bg-[#1DB954] hover:bg-[#1ed760] text-white"
+                  >
+                    Connect Spotify
+                  </Button>
+                </>
               ) : (
-                <div className="w-64 h-64 flex items-center justify-center rounded-2xl bg-muted/20">
-                  <span className="text-6xl">🎵</span>
-                </div>
+                <>
+                  {nowPlaying?.image ? (
+                    <img
+                      src={nowPlaying.image}
+                      alt="Album Art"
+                      className="max-w-xs rounded-2xl shadow-xl"
+                    />
+                  ) : (
+                    <div className="w-64 h-64 flex items-center justify-center rounded-2xl bg-muted/20">
+                      <span className="text-6xl">🎵</span>
+                    </div>
+                  )}
+                  <h2 className="text-3xl font-extrabold text-foreground">
+                    {nowPlaying?.title || "Not Playing"}
+                  </h2>
+                  <p className="text-xl text-muted-foreground">
+                    {nowPlaying?.artist || "—"}
+                  </p>
+                  <p className="text-sm text-muted-foreground/60">
+                    {nowPlaying?.playing ? "Now Playing" : "Paused / Not Playing"}
+                  </p>
+                </>
               )}
-              <h2 className="text-3xl font-extrabold text-foreground">
-                {nowPlaying?.title ?? "—"}
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                {nowPlaying?.artist ?? "—"}
-              </p>
-              <p className="text-sm text-muted-foreground/60">
-                {nowPlaying?.playing ? "Now Playing" : "Paused / Not Playing"}
-              </p>
             </div>
           </CarouselItem>
         </CarouselContent>
