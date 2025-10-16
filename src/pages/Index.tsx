@@ -32,7 +32,14 @@ const Index = () => {
     queryKey: ["now-playing"],
     queryFn: async () => {
       try {
-        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify-auth`);
+        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify-auth`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ action: 'now-playing' }),
+        });
         if (!res.ok) throw new Error('Failed to fetch');
         const data = await res.json();
         return {
@@ -308,8 +315,27 @@ const Index = () => {
                     Sign in to Spotify to display what you're currently listening to on the kiosk
                   </p>
                   <Button
-                    onClick={() => {
-                      window.location.href = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify-auth?action=login`;
+                    onClick={async () => {
+                      try {
+                        const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify-auth`, {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                          },
+                          body: JSON.stringify({ 
+                            action: 'authorize',
+                            state: window.location.origin 
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.authUrl) {
+                          window.location.href = data.authUrl;
+                        }
+                      } catch (error) {
+                        console.error('Failed to start Spotify auth:', error);
+                        toast.error('Failed to connect to Spotify');
+                      }
                     }}
                     size="lg"
                     className="w-64 h-14 text-xl font-bold rounded-2xl bg-[#1DB954] hover:bg-[#1ed760] text-white"
