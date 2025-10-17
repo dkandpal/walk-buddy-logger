@@ -187,13 +187,13 @@ const Index = () => {
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   };
 
-  // Format time as MM:SS (minutes precision for home screen)
-  const formatTimeMinutes = (ms: number) => {
+  // Format time as HH:MM (hours:minutes for home screen)
+  const formatTimeHoursMinutes = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
-    const totalMinutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
     
-    return `${String(totalMinutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
   };
 
   // Format last walk time
@@ -239,7 +239,7 @@ const Index = () => {
                 <div className="flex flex-col items-center justify-center space-y-4">
                   <h2 className="text-3xl font-bold text-foreground">Dog</h2>
                   <div className="text-6xl font-black text-foreground tabular-nums tracking-tight">
-                    {formatTimeMinutes(timeRemaining)}
+                    {formatTimeHoursMinutes(timeRemaining)}
                   </div>
                 </div>
 
