@@ -106,26 +106,16 @@ const Index = () => {
     }
   }, []);
 
-  // Auto-switch to Now Playing slide when music is playing
+  // Auto-rotate slides every 20 seconds
   useEffect(() => {
     if (!api) return;
-    if (nowPlaying?.playing) {
-      api.scrollTo(1);
-    } else {
-      api.scrollTo(0);
-    }
-  }, [nowPlaying?.playing, api]);
-
-  // Auto-rotate slides every 8 seconds when music isn't playing
-  useEffect(() => {
-    if (!api || nowPlaying?.playing) return;
     const timer = setInterval(() => {
       const current = api.selectedScrollSnap();
-      const next = (current + 1) % 2;
+      const next = (current + 1) % 3;
       api.scrollTo(next);
-    }, 8000);
+    }, 20000);
     return () => clearInterval(timer);
-  }, [nowPlaying?.playing, api]);
+  }, [api]);
 
   // Timer countdown logic
   useEffect(() => {
@@ -176,7 +166,7 @@ const Index = () => {
     toast.success(`Walk recorded! ${walkedBy.join(", ")} walked the dog 🐕`);
   };
 
-  // Format time remaining
+  // Format time remaining (HH:MM:SS)
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
     const hours = Math.floor(totalSeconds / 3600);
@@ -184,6 +174,15 @@ const Index = () => {
     const seconds = totalSeconds % 60;
     
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  };
+
+  // Format time as MM:SS (minutes precision for home screen)
+  const formatTimeMinutes = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const totalMinutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    
+    return `${String(totalMinutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   };
 
   // Format last walk time
@@ -217,6 +216,40 @@ const Index = () => {
     <>
       <Carousel setApi={setApi} className="h-screen overflow-hidden">
         <CarouselContent>
+          {/* Slide 0: Home Screen */}
+          <CarouselItem className="h-screen">
+            <div className="h-screen bg-background flex flex-col items-center justify-center p-8">
+              <h1 className="text-6xl font-extrabold text-foreground mb-16 tracking-tight">
+                ORION HOME
+              </h1>
+              
+              <div className="grid grid-cols-2 gap-16 w-full max-w-4xl">
+                {/* Dog Section */}
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <h2 className="text-3xl font-bold text-foreground">Dog</h2>
+                  <div className="text-6xl font-black text-foreground tabular-nums tracking-tight">
+                    {formatTimeMinutes(timeRemaining)}
+                  </div>
+                </div>
+
+                {/* Music Section */}
+                <div className="flex flex-col items-center justify-center space-y-4">
+                  <h2 className="text-3xl font-bold text-foreground">Music</h2>
+                  <div className="text-center">
+                    {nowPlaying?.playing ? (
+                      <div className="space-y-2">
+                        <p className="text-2xl font-bold text-foreground">{nowPlaying.title}</p>
+                        <p className="text-xl text-muted-foreground">{nowPlaying.artist}</p>
+                      </div>
+                    ) : (
+                      <p className="text-2xl font-bold text-muted-foreground">Not Playing</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CarouselItem>
+
           {/* Slide 1: Dog Walk Tracker */}
           <CarouselItem className="h-screen">
             <div className="h-screen bg-background flex overflow-hidden">
