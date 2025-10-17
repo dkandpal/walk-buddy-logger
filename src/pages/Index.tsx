@@ -111,11 +111,22 @@ const Index = () => {
     if (!api) return;
     const timer = setInterval(() => {
       const current = api.selectedScrollSnap();
-      const next = (current + 1) % 3;
+      const totalSlides = 3;
+      
+      // Skip slide 1 (dog walker) if time remaining is more than 30 minutes
+      const shouldShowDogWalker = timeRemaining < 30 * 60 * 1000; // 30 minutes in ms
+      
+      let next = (current + 1) % totalSlides;
+      
+      // If we're about to go to slide 1 and shouldn't show it, skip to slide 2
+      if (next === 1 && !shouldShowDogWalker) {
+        next = 2;
+      }
+      
       api.scrollTo(next);
     }, 20000);
     return () => clearInterval(timer);
-  }, [api]);
+  }, [api, timeRemaining]);
 
   // Timer countdown logic
   useEffect(() => {
@@ -382,7 +393,7 @@ const Index = () => {
                     <img
                       src={nowPlaying.image}
                       alt="Album Art"
-                      className="max-w-xs rounded-2xl shadow-xl"
+                      className="w-[280px] h-[280px] rounded-2xl shadow-xl object-cover"
                     />
                   ) : (
                     <div className="w-64 h-64 flex items-center justify-center rounded-2xl bg-muted/20">

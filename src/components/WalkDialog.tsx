@@ -42,20 +42,20 @@ export function WalkDialog({ open, onConfirm, onCancel }: WalkDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={handleCancel}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
             Who walked the dog? 🐕
           </DialogTitle>
         </DialogHeader>
         
-        <div className="grid grid-cols-2 gap-4 py-6">
+        <div className="grid grid-cols-2 gap-3 py-4 overflow-y-auto">
           {WALKERS.map((person) => (
             <button
               key={person}
               onClick={() => togglePerson(person)}
               className={`
-                relative flex flex-col items-center justify-center gap-3 p-6 
+                relative flex flex-col items-center justify-center gap-2 p-4 
                 rounded-2xl border-4 transition-all duration-200
                 ${
                   selected.includes(person)
@@ -69,7 +69,7 @@ export function WalkDialog({ open, onConfirm, onCancel }: WalkDialogProps) {
                   <Check className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
-              <div className="w-24 h-24 flex items-center justify-center">
+              <div className="w-20 h-20 flex items-center justify-center">
                 {person === "Deva" && (
                   <img 
                     src="/deva.JPG" 
@@ -91,25 +91,25 @@ export function WalkDialog({ open, onConfirm, onCancel }: WalkDialogProps) {
                     className="w-full h-full object-cover rounded-full"
                   />
                 )}
-                {person === "Other" && <div className="text-6xl">🤗</div>}
+                {person === "Other" && <div className="text-5xl">🤗</div>}
               </div>
-              <span className="text-xl font-bold">{person}</span>
+              <span className="text-lg font-bold">{person}</span>
             </button>
           ))}
         </div>
 
-        <DialogFooter className="flex-row gap-3">
+        <DialogFooter className="flex-row gap-3 pt-2">
           <Button
             variant="outline"
             onClick={handleCancel}
-            className="flex-1 h-14 text-lg"
+            className="flex-1 h-12 text-base"
           >
             Cancel
           </Button>
           <Button
             onClick={handleConfirm}
             disabled={selected.length === 0}
-            className="flex-1 h-14 text-lg font-bold bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)]"
+            className="flex-1 h-12 text-base font-bold bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)]"
           >
             Confirm
           </Button>
