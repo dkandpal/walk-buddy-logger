@@ -254,7 +254,7 @@ const Index = () => {
           <CarouselItem className="h-screen">
             <div className="h-screen bg-background flex overflow-hidden">
               {/* Left side - Dog image */}
-              <div className="w-[35%] h-screen relative flex-shrink-0">
+              <div className="w-1/2 h-screen relative flex-shrink-0">
                 <img 
                   src="/DERPDOG.jpeg" 
                   alt="Derpdog" 
@@ -263,7 +263,7 @@ const Index = () => {
               </div>
 
               {/* Right side - Main content */}
-              <div className="flex-1 flex flex-col items-center justify-center p-3 overflow-y-auto">
+              <div className="w-1/2 flex flex-col items-center justify-center p-3 overflow-y-auto">
                 <div className="w-full space-y-3 text-center">
                   {/* Header */}
                   <div className="space-y-1">
