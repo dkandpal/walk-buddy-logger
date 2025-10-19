@@ -27,6 +27,7 @@ const Index = () => {
   const [isQuietHours, setIsQuietHours] = useState(false);
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Fetch weather data (Fort Greene, NY coordinates) - basic
   const { data: weather } = useQuery({
@@ -184,6 +185,14 @@ const Index = () => {
     return () => clearInterval(timer);
   }, [api, timeRemaining]);
 
+  // Update current time every second
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Timer countdown logic
   useEffect(() => {
     const inQuietHours = checkQuietHours();
@@ -308,6 +317,15 @@ const Index = () => {
     return date.toLocaleDateString('en-US', { weekday: 'short' });
   };
 
+  // Format current time
+  const formatCurrentTime = () => {
+    return currentTime.toLocaleTimeString('en-US', { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true 
+    });
+  };
+
   return (
     <>
       <Carousel setApi={setApi} className="h-screen overflow-hidden">
@@ -316,10 +334,14 @@ const Index = () => {
           <CarouselItem className="h-screen">
             <div className="h-[480px] w-[800px] mx-auto bg-background flex flex-col">
               {/* Header */}
-              <div className="h-[60px] flex items-center justify-center border-b-2 border-border bg-card">
+              <div className="h-[60px] flex items-center justify-between px-8 border-b-2 border-border bg-card">
+                <div className="text-2xl font-bold text-foreground tabular-nums">
+                  {formatCurrentTime()}
+                </div>
                 <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
                   ORION HOME
                 </h1>
+                <div className="w-32"></div> {/* Spacer for centering */}
               </div>
 
               {/* Main Grid */}
