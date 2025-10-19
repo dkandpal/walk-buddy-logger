@@ -28,13 +28,13 @@ const Index = () => {
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
 
-  // Fetch weather data (San Francisco coordinates)
+  // Fetch weather data (Fort Greene, NY coordinates)
   const { data: weather } = useQuery({
     queryKey: ["weather"],
     queryFn: async () => {
       try {
         const res = await fetch(
-          'https://api.open-meteo.com/v1/forecast?latitude=37.7749&longitude=-122.4194&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America/Los_Angeles'
+          'https://api.open-meteo.com/v1/forecast?latitude=40.6895&longitude=-73.9733&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America/New_York'
         );
         if (!res.ok) throw new Error('Failed to fetch weather');
         const data = await res.json();
@@ -284,7 +284,7 @@ const Index = () => {
                         {weather?.temperature ? `${weather.temperature}°F` : '--°'}
                       </div>
                       <div className="text-sm text-muted-foreground font-semibold">
-                        San Francisco
+                        Fort Greene, NY
                       </div>
                     </div>
                   </div>
