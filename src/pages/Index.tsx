@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { WalkDialog } from "@/components/WalkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Dog, AlertCircle, Cloud, CloudRain, Sun, CloudSnow } from "lucide-react";
+import { Dog, AlertCircle, Cloud, CloudRain, Sun, CloudSnow, Home, ArrowLeft } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -28,7 +28,7 @@ const Index = () => {
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
 
-  // Fetch weather data (Fort Greene, NY coordinates)
+  // Fetch weather data (Fort Greene, NY coordinates) - basic
   const { data: weather } = useQuery({
     queryKey: ["weather"],
     queryFn: async () => {
@@ -45,6 +45,30 @@ const Index = () => {
       } catch (error) {
         console.log('Weather fetch failed:', error);
         return { temperature: null, weatherCode: null };
+      }
+    },
+    refetchInterval: 600000, // Refresh every 10 minutes
+    retry: 1,
+  });
+
+  // Fetch detailed weather data
+  const { data: detailedWeather } = useQuery({
+    queryKey: ["detailed-weather"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(
+          'https://api.open-meteo.com/v1/forecast?latitude=40.6895&longitude=-73.9733&hourly=temperature_2m,weather_code,apparent_temperature&daily=weather_code,temperature_2m_max,temperature_2m_min&temperature_unit=fahrenheit&timezone=America/New_York&forecast_days=5'
+        );
+        if (!res.ok) throw new Error('Failed to fetch detailed weather');
+        const data = await res.json();
+        return {
+          hourly: data.hourly,
+          daily: data.daily,
+          current_apparent: data.hourly.apparent_temperature[0],
+        };
+      } catch (error) {
+        console.log('Detailed weather fetch failed:', error);
+        return null;
       }
     },
     refetchInterval: 600000, // Refresh every 10 minutes
@@ -130,12 +154,15 @@ const Index = () => {
     }
   }, []);
 
-  // Auto-rotate slides every 20 seconds
+  // Auto-rotate slides every 20 seconds (only for home screen)
   useEffect(() => {
     if (!api) return;
     const timer = setInterval(() => {
       const current = api.selectedScrollSnap();
-      const totalSlides = 3;
+      // Only auto-rotate if on home screen (slide 0)
+      if (current !== 0) return;
+      
+      const totalSlides = 4; // Updated to include weather detail screen
       
       // Skip slide 1 (dog walker) if time remaining is more than 30 minutes
       const shouldShowDogWalker = timeRemaining < 30 * 60 * 1000; // 30 minutes in ms
@@ -145,6 +172,11 @@ const Index = () => {
       // If we're about to go to slide 1 and shouldn't show it, skip to slide 2
       if (next === 1 && !shouldShowDogWalker) {
         next = 2;
+      }
+      
+      // Never auto-rotate to weather detail (slide 3)
+      if (next === 3) {
+        next = 0;
       }
       
       api.scrollTo(next);
@@ -248,13 +280,32 @@ const Index = () => {
   const isOverdue = timeRemaining === 0 && !isQuietHours && !timerPaused;
 
   // Get weather icon based on weather code
-  const getWeatherIcon = (code: number | null) => {
-    if (!code) return <Cloud className="w-12 h-12" />;
-    if (code === 0 || code === 1) return <Sun className="w-12 h-12 text-yellow-500" />;
-    if (code >= 2 && code <= 3) return <Cloud className="w-12 h-12" />;
-    if (code >= 51 && code <= 67) return <CloudRain className="w-12 h-12 text-blue-500" />;
-    if (code >= 71 && code <= 77) return <CloudSnow className="w-12 h-12 text-blue-300" />;
-    return <Cloud className="w-12 h-12" />;
+  const getWeatherIcon = (code: number | null, size: number = 12) => {
+    const className = `w-${size} h-${size}`;
+    if (!code) return <Cloud className={className} />;
+    if (code === 0 || code === 1) return <Sun className={className} />;
+    if (code >= 2 && code <= 3) return <Cloud className={className} />;
+    if (code >= 51 && code <= 67) return <CloudRain className={className} />;
+    if (code >= 71 && code <= 77) return <CloudSnow className={className} />;
+    return <Cloud className={className} />;
+  };
+
+  // Get weather description
+  const getWeatherDescription = (code: number | null) => {
+    if (!code) return "Unknown";
+    if (code === 0) return "Clear";
+    if (code === 1) return "Mostly Clear";
+    if (code === 2) return "Partly Cloudy";
+    if (code === 3) return "Overcast";
+    if (code >= 51 && code <= 67) return "Rainy";
+    if (code >= 71 && code <= 77) return "Snowy";
+    return "Cloudy";
+  };
+
+  // Format day name
+  const formatDay = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { weekday: 'short' });
   };
 
   return (
@@ -263,60 +314,79 @@ const Index = () => {
         <CarouselContent>
           {/* Slide 0: Home Screen - Optimized for 800x480 */}
           <CarouselItem className="h-screen">
-            <div className="h-[480px] w-[800px] mx-auto bg-background grid grid-cols-2 gap-0">
-              {/* Left Column: Family Photo + Weather */}
-              <div className="flex flex-col h-full">
-                {/* Family Photo - Top */}
-                <div className="h-[320px] relative overflow-hidden">
-                  <img 
-                    src={familyPhoto} 
-                    alt="Family" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                
-                {/* Weather - Bottom */}
-                <div className="h-[160px] bg-card border-t-2 border-border flex items-center justify-center px-4">
-                  <div className="flex items-center gap-4">
-                    {getWeatherIcon(weather?.weatherCode || null)}
-                    <div>
-                      <div className="text-4xl font-black text-foreground">
-                        {weather?.temperature ? `${weather.temperature}°F` : '--°'}
-                      </div>
-                      <div className="text-sm text-muted-foreground font-semibold">
-                        Fort Greene, NY
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <div className="h-[480px] w-[800px] mx-auto bg-background flex flex-col">
+              {/* Header */}
+              <div className="h-[60px] flex items-center justify-center border-b-2 border-border bg-card">
+                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+                  ORION HOME
+                </h1>
               </div>
 
-              {/* Right Column: Dog Timer + Music */}
-              <div className="flex flex-col h-full border-l-2 border-border">
-                {/* Dog Timer - Top */}
-                <div className="h-[240px] flex flex-col items-center justify-center bg-background px-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-3">Dog Walk</h2>
-                  <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
-                    {formatTimeHoursMinutes(timeRemaining)}
+              {/* Main Grid */}
+              <div className="flex-1 grid grid-cols-2 gap-0">
+                {/* Left Column: Family Photo + Weather */}
+                <div className="flex flex-col h-full">
+                  {/* Family Photo - Top */}
+                  <div className="h-[260px] relative overflow-hidden">
+                    <img 
+                      src={familyPhoto} 
+                      alt="Family" 
+                      className="w-full h-full object-cover"
+                    />
                   </div>
-                  {isOverdue && (
-                    <div className="mt-3 text-destructive text-sm font-bold animate-pulse">
-                      🚨 NEEDS WALK
+                  
+                  {/* Weather - Bottom - Clickable */}
+                  <button
+                    onClick={() => api?.scrollTo(3)}
+                    className="h-[160px] bg-card border-t-2 border-border flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      {getWeatherIcon(weather?.weatherCode || null, 12)}
+                      <div>
+                        <div className="text-4xl font-black text-foreground">
+                          {weather?.temperature ? `${weather.temperature}°F` : '--°'}
+                        </div>
+                        <div className="text-sm text-muted-foreground font-semibold">
+                          Fort Greene, NY
+                        </div>
+                      </div>
                     </div>
-                  )}
+                  </button>
                 </div>
 
-                {/* Music - Bottom */}
-                <div className="h-[240px] flex flex-col items-center justify-center bg-card border-t-2 border-border px-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-3">Now Playing</h2>
-                  {nowPlaying?.playing ? (
-                    <div className="space-y-2 text-center">
-                      <p className="text-xl font-bold text-foreground line-clamp-2">{nowPlaying.title}</p>
-                      <p className="text-base text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
+                {/* Right Column: Dog Timer + Music */}
+                <div className="flex flex-col h-full border-l-2 border-border">
+                  {/* Dog Timer - Top - Clickable */}
+                  <button
+                    onClick={() => api?.scrollTo(1)}
+                    className="h-[210px] flex flex-col items-center justify-center bg-background px-6 hover:bg-accent/5 transition-colors cursor-pointer"
+                  >
+                    <h2 className="text-2xl font-bold text-foreground mb-3">Dog Walk</h2>
+                    <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
+                      {formatTimeHoursMinutes(timeRemaining)}
                     </div>
-                  ) : (
-                    <p className="text-lg font-semibold text-muted-foreground">Not Playing</p>
-                  )}
+                    {isOverdue && (
+                      <div className="mt-3 text-destructive text-sm font-bold animate-pulse">
+                        🚨 NEEDS WALK
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Music - Bottom - Clickable */}
+                  <button
+                    onClick={() => api?.scrollTo(2)}
+                    className="h-[210px] flex flex-col items-center justify-center bg-card border-t-2 border-border px-6 hover:bg-accent/5 transition-colors cursor-pointer"
+                  >
+                    <h2 className="text-2xl font-bold text-foreground mb-3">Now Playing</h2>
+                    {nowPlaying?.playing ? (
+                      <div className="space-y-2 text-center">
+                        <p className="text-xl font-bold text-foreground line-clamp-2">{nowPlaying.title}</p>
+                        <p className="text-base text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
+                      </div>
+                    ) : (
+                      <p className="text-lg font-semibold text-muted-foreground">Not Playing</p>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
@@ -324,7 +394,18 @@ const Index = () => {
 
           {/* Slide 1: Dog Walk Tracker */}
           <CarouselItem className="h-screen">
-            <div className="h-screen bg-background flex overflow-hidden">
+            <div className="h-screen bg-background flex overflow-hidden relative">
+              {/* Back to Home Button */}
+              <Button
+                onClick={() => api?.scrollTo(0)}
+                variant="outline"
+                size="sm"
+                className="absolute top-4 left-4 z-10"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Home
+              </Button>
+
               {/* Left side - Dog image */}
               <div className="w-1/2 h-screen relative flex-shrink-0">
                 <img 
@@ -406,7 +487,18 @@ const Index = () => {
           </CarouselItem>
 
           {/* Slide 2: Now Playing */}
-          <CarouselItem className="flex items-center justify-center h-screen bg-background">
+          <CarouselItem className="flex items-center justify-center h-screen bg-background relative">
+            {/* Back to Home Button */}
+            <Button
+              onClick={() => api?.scrollTo(0)}
+              variant="outline"
+              size="sm"
+              className="absolute top-4 left-4 z-10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+
             <div className="flex flex-col items-center justify-center text-center gap-6 px-4">
               {!nowPlaying?.connected ? (
                 <>
@@ -472,6 +564,110 @@ const Index = () => {
                   </p>
                 </>
               )}
+            </div>
+          </CarouselItem>
+
+          {/* Slide 3: Detailed Weather */}
+          <CarouselItem className="h-screen bg-background relative">
+            {/* Back to Home Button */}
+            <Button
+              onClick={() => api?.scrollTo(0)}
+              variant="outline"
+              size="sm"
+              className="absolute top-4 left-4 z-10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Home
+            </Button>
+
+            <div className="h-screen overflow-y-auto p-8 pt-16">
+              <div className="max-w-4xl mx-auto space-y-6">
+                {/* Header */}
+                <div className="text-center space-y-2">
+                  <h1 className="text-4xl font-extrabold text-foreground">Weather Details</h1>
+                  <p className="text-lg text-muted-foreground">Fort Greene, NY</p>
+                </div>
+
+                {/* Current Conditions */}
+                <div className="bg-card border-2 border-border rounded-2xl p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-4">Current Conditions</h2>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex items-center gap-3">
+                      {getWeatherIcon(weather?.weatherCode || null, 10)}
+                      <div>
+                        <div className="text-3xl font-black text-foreground">
+                          {weather?.temperature ? `${weather.temperature}°F` : '--°'}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {getWeatherDescription(weather?.weatherCode || null)}
+                        </div>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">Feels Like</div>
+                      <div className="text-2xl font-bold text-foreground">
+                        {detailedWeather?.current_apparent ? `${Math.round(detailedWeather.current_apparent)}°F` : '--°'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Hourly Forecast (Next 12 hours) */}
+                <div className="bg-card border-2 border-border rounded-2xl p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-4">Hourly Forecast</h2>
+                  <div className="grid grid-cols-6 gap-4">
+                    {detailedWeather?.hourly?.time.slice(0, 12).map((time: string, idx: number) => {
+                      const hour = new Date(time).getHours();
+                      const temp = detailedWeather.hourly.temperature_2m[idx];
+                      const code = detailedWeather.hourly.weather_code[idx];
+                      return (
+                        <div key={time} className="text-center space-y-2">
+                          <div className="text-sm font-semibold text-muted-foreground">
+                            {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour-12}PM`}
+                          </div>
+                          <div className="flex justify-center">
+                            {getWeatherIcon(code, 8)}
+                          </div>
+                          <div className="text-lg font-bold text-foreground">
+                            {Math.round(temp)}°
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 5-Day Forecast */}
+                <div className="bg-card border-2 border-border rounded-2xl p-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-4">5-Day Forecast</h2>
+                  <div className="space-y-3">
+                    {detailedWeather?.daily?.time.map((date: string, idx: number) => {
+                      const maxTemp = detailedWeather.daily.temperature_2m_max[idx];
+                      const minTemp = detailedWeather.daily.temperature_2m_min[idx];
+                      const code = detailedWeather.daily.weather_code[idx];
+                      return (
+                        <div key={date} className="flex items-center justify-between p-3 bg-background rounded-lg">
+                          <div className="flex items-center gap-4 flex-1">
+                            <div className="w-20 font-semibold text-foreground">
+                              {idx === 0 ? 'Today' : formatDay(date)}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {getWeatherIcon(code, 6)}
+                              <span className="text-sm text-muted-foreground">
+                                {getWeatherDescription(code)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground">L: {Math.round(minTemp)}°</span>
+                            <span className="font-bold text-foreground">H: {Math.round(maxTemp)}°</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
             </div>
           </CarouselItem>
         </CarouselContent>
