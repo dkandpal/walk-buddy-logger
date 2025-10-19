@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { WalkDialog } from "@/components/WalkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Dog, AlertCircle } from "lucide-react";
+import { Dog, AlertCircle, Cloud, CloudRain, Sun, CloudSnow } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -13,6 +13,7 @@ import {
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { useQuery } from "@tanstack/react-query";
+import familyPhoto from "@/assets/family-photo.png";
 
 const FOUR_HOURS_IN_MS = 4 * 60 * 60 * 1000;
 const QUIET_START_HOUR = 22; // 10:30 PM (we'll check minutes too)
@@ -26,6 +27,29 @@ const Index = () => {
   const [isQuietHours, setIsQuietHours] = useState(false);
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
+
+  // Fetch weather data (San Francisco coordinates)
+  const { data: weather } = useQuery({
+    queryKey: ["weather"],
+    queryFn: async () => {
+      try {
+        const res = await fetch(
+          'https://api.open-meteo.com/v1/forecast?latitude=37.7749&longitude=-122.4194&current=temperature_2m,weather_code&temperature_unit=fahrenheit&timezone=America/Los_Angeles'
+        );
+        if (!res.ok) throw new Error('Failed to fetch weather');
+        const data = await res.json();
+        return {
+          temperature: Math.round(data.current.temperature_2m),
+          weatherCode: data.current.weather_code,
+        };
+      } catch (error) {
+        console.log('Weather fetch failed:', error);
+        return { temperature: null, weatherCode: null };
+      }
+    },
+    refetchInterval: 600000, // Refresh every 10 minutes
+    retry: 1,
+  });
 
   // Poll Spotify for now playing info
   const { data: nowPlaying } = useQuery({
@@ -223,39 +247,76 @@ const Index = () => {
 
   const isOverdue = timeRemaining === 0 && !isQuietHours && !timerPaused;
 
+  // Get weather icon based on weather code
+  const getWeatherIcon = (code: number | null) => {
+    if (!code) return <Cloud className="w-12 h-12" />;
+    if (code === 0 || code === 1) return <Sun className="w-12 h-12 text-yellow-500" />;
+    if (code >= 2 && code <= 3) return <Cloud className="w-12 h-12" />;
+    if (code >= 51 && code <= 67) return <CloudRain className="w-12 h-12 text-blue-500" />;
+    if (code >= 71 && code <= 77) return <CloudSnow className="w-12 h-12 text-blue-300" />;
+    return <Cloud className="w-12 h-12" />;
+  };
+
   return (
     <>
       <Carousel setApi={setApi} className="h-screen overflow-hidden">
         <CarouselContent>
-          {/* Slide 0: Home Screen */}
+          {/* Slide 0: Home Screen - Optimized for 800x480 */}
           <CarouselItem className="h-screen">
-            <div className="h-screen bg-background flex flex-col items-center justify-center p-8">
-              <h1 className="text-6xl font-extrabold text-foreground mb-16 tracking-tight">
-                ORION HOME
-              </h1>
-              
-              <div className="grid grid-cols-2 gap-16 w-full max-w-4xl">
-                {/* Dog Section */}
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <h2 className="text-3xl font-bold text-foreground">Dog</h2>
-                  <div className="text-6xl font-black text-foreground tabular-nums tracking-tight">
-                    {formatTimeHoursMinutes(timeRemaining)}
+            <div className="h-[480px] w-[800px] mx-auto bg-background grid grid-cols-2 gap-0">
+              {/* Left Column: Family Photo + Weather */}
+              <div className="flex flex-col h-full">
+                {/* Family Photo - Top */}
+                <div className="h-[320px] relative overflow-hidden">
+                  <img 
+                    src={familyPhoto} 
+                    alt="Family" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                
+                {/* Weather - Bottom */}
+                <div className="h-[160px] bg-card border-t-2 border-border flex items-center justify-center px-4">
+                  <div className="flex items-center gap-4">
+                    {getWeatherIcon(weather?.weatherCode || null)}
+                    <div>
+                      <div className="text-4xl font-black text-foreground">
+                        {weather?.temperature ? `${weather.temperature}°F` : '--°'}
+                      </div>
+                      <div className="text-sm text-muted-foreground font-semibold">
+                        San Francisco
+                      </div>
+                    </div>
                   </div>
                 </div>
+              </div>
 
-                {/* Music Section */}
-                <div className="flex flex-col items-center justify-center space-y-4">
-                  <h2 className="text-3xl font-bold text-foreground">Music</h2>
-                  <div className="text-center">
-                    {nowPlaying?.playing ? (
-                      <div className="space-y-2">
-                        <p className="text-2xl font-bold text-foreground">{nowPlaying.title}</p>
-                        <p className="text-xl text-muted-foreground">{nowPlaying.artist}</p>
-                      </div>
-                    ) : (
-                      <p className="text-2xl font-bold text-muted-foreground">Not Playing</p>
-                    )}
+              {/* Right Column: Dog Timer + Music */}
+              <div className="flex flex-col h-full border-l-2 border-border">
+                {/* Dog Timer - Top */}
+                <div className="h-[240px] flex flex-col items-center justify-center bg-background px-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-3">Dog Walk</h2>
+                  <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
+                    {formatTimeHoursMinutes(timeRemaining)}
                   </div>
+                  {isOverdue && (
+                    <div className="mt-3 text-destructive text-sm font-bold animate-pulse">
+                      🚨 NEEDS WALK
+                    </div>
+                  )}
+                </div>
+
+                {/* Music - Bottom */}
+                <div className="h-[240px] flex flex-col items-center justify-center bg-card border-t-2 border-border px-6">
+                  <h2 className="text-2xl font-bold text-foreground mb-3">Now Playing</h2>
+                  {nowPlaying?.playing ? (
+                    <div className="space-y-2 text-center">
+                      <p className="text-xl font-bold text-foreground line-clamp-2">{nowPlaying.title}</p>
+                      <p className="text-base text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
+                    </div>
+                  ) : (
+                    <p className="text-lg font-semibold text-muted-foreground">Not Playing</p>
+                  )}
                 </div>
               </div>
             </div>
