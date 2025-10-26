@@ -14,6 +14,102 @@ export type Database = {
   }
   public: {
     Tables: {
+      electricity_alerts: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          last_fired_at: string | null
+          rule_config: Json
+          rule_type: string
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_fired_at?: string | null
+          rule_config: Json
+          rule_type: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_fired_at?: string | null
+          rule_config?: Json
+          rule_type?: string
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      electricity_prices: {
+        Row: {
+          created_at: string | null
+          id: string
+          lmp_usd_mwh: number
+          source: string
+          timestamp: string
+          zone: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          lmp_usd_mwh: number
+          source: string
+          timestamp: string
+          zone?: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          lmp_usd_mwh?: number
+          source?: string
+          timestamp?: string
+          zone?: string
+        }
+        Relationships: []
+      }
+      electricity_windows: {
+        Row: {
+          avg_price: number | null
+          created_at: string | null
+          duration_minutes: number | null
+          end_time: string
+          id: string
+          label: string
+          percentile: number | null
+          start_time: string
+          zone: string
+        }
+        Insert: {
+          avg_price?: number | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          end_time: string
+          id?: string
+          label: string
+          percentile?: number | null
+          start_time: string
+          zone?: string
+        }
+        Update: {
+          avg_price?: number | null
+          created_at?: string | null
+          duration_minutes?: number | null
+          end_time?: string
+          id?: string
+          label?: string
+          percentile?: number | null
+          start_time?: string
+          zone?: string
+        }
+        Relationships: []
+      }
       spotify_tokens: {
         Row: {
           access_token: string
@@ -38,6 +134,45 @@ export type Database = {
           id?: string
           refresh_token?: string
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_electricity_preferences: {
+        Row: {
+          created_at: string | null
+          email_enabled: boolean | null
+          id: string
+          iso_zone: string | null
+          on_tou_plan: boolean | null
+          preferred_appliances: string[] | null
+          push_enabled: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          zip_code: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          iso_zone?: string | null
+          on_tou_plan?: boolean | null
+          preferred_appliances?: string[] | null
+          push_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          zip_code?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email_enabled?: boolean | null
+          id?: string
+          iso_zone?: string | null
+          on_tou_plan?: boolean | null
+          preferred_appliances?: string[] | null
+          push_enabled?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          zip_code?: string | null
         }
         Relationships: []
       }

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { WalkDialog } from "@/components/WalkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Dog, AlertCircle, Cloud, CloudRain, Sun, CloudSnow, Home, ArrowLeft } from "lucide-react";
+import { Dog, AlertCircle, Cloud, CloudRain, Sun, CloudSnow, Home, ArrowLeft, Zap } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/carousel";
 import { useQuery } from "@tanstack/react-query";
 import familyPhoto from "@/assets/family-photo.png";
+import Electricity from "./Electricity";
 
 const FOUR_HOURS_IN_MS = 4 * 60 * 60 * 1000;
 const QUIET_START_HOUR = 22; // 10:30 PM (we'll check minutes too)
@@ -163,7 +164,7 @@ const Index = () => {
       // Only auto-rotate if on home screen (slide 0)
       if (current !== 0) return;
       
-      const totalSlides = 4; // Updated to include weather detail screen
+      const totalSlides = 5; // Updated to include weather detail screen + electricity
       
       // Skip slide 1 (dog walker) if time remaining is more than 30 minutes
       const shouldShowDogWalker = timeRemaining < 30 * 60 * 1000; // 30 minutes in ms
@@ -175,8 +176,8 @@ const Index = () => {
         next = 2;
       }
       
-      // Never auto-rotate to weather detail (slide 3)
-      if (next === 3) {
+      // Never auto-rotate to weather detail (slide 3) or electricity (slide 4)
+      if (next === 3 || next === 4) {
         next = 0;
       }
       
@@ -344,70 +345,83 @@ const Index = () => {
                 <div className="w-32"></div> {/* Spacer for centering */}
               </div>
 
-              {/* Main Grid */}
-              <div className="flex-1 grid grid-cols-2 gap-0">
-                {/* Left Column: Family Photo + Weather */}
+              {/* Main Grid - Updated with 3 sections */}
+              <div className="flex-1 grid grid-cols-3 gap-0">
+                {/* Left Column: Family Photo */}
                 <div className="flex flex-col h-full">
-                  {/* Family Photo - Top */}
-                  <div className="h-[260px] relative overflow-hidden">
+                  {/* Family Photo - Full Height */}
+                  <div className="h-full relative overflow-hidden">
                     <img 
                       src={familyPhoto} 
                       alt="Family" 
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  
-                  {/* Weather - Bottom - Clickable */}
+                </div>
+
+                {/* Middle Column: Weather + Dog Timer */}
+                <div className="flex flex-col h-full border-l-2 border-border">
+                  {/* Weather - Top - Clickable */}
                   <button
                     onClick={() => api?.scrollTo(3)}
-                    className="h-[160px] bg-card border-t-2 border-border flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer"
+                    className="h-[210px] bg-card flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer"
                   >
-                    <div className="flex items-center gap-4">
-                      {getWeatherIcon(weather?.weatherCode || null, 12)}
+                    <div className="flex items-center gap-3">
+                      {getWeatherIcon(weather?.weatherCode || null, 10)}
                       <div>
-                        <div className="text-4xl font-black text-foreground">
+                        <div className="text-3xl font-black text-foreground">
                           {weather?.temperature ? `${weather.temperature}°F` : '--°'}
                         </div>
-                        <div className="text-sm text-muted-foreground font-semibold">
+                        <div className="text-xs text-muted-foreground font-semibold">
                           Fort Greene, NY
                         </div>
                       </div>
                     </div>
                   </button>
-                </div>
 
-                {/* Right Column: Dog Timer + Music */}
-                <div className="flex flex-col h-full border-l-2 border-border">
-                  {/* Dog Timer - Top - Clickable */}
+                  {/* Dog Timer - Bottom - Clickable */}
                   <button
                     onClick={() => api?.scrollTo(1)}
-                    className="h-[210px] flex flex-col items-center justify-center bg-background px-6 hover:bg-accent/5 transition-colors cursor-pointer"
+                    className="h-[210px] flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer"
                   >
-                    <h2 className="text-2xl font-bold text-foreground mb-3">Dog Walk</h2>
-                    <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
+                    <h2 className="text-xl font-bold text-foreground mb-2">Dog Walk</h2>
+                    <div className="text-4xl font-black text-foreground tabular-nums tracking-tight">
                       {formatTimeHoursMinutes(timeRemaining)}
                     </div>
                     {isOverdue && (
-                      <div className="mt-3 text-destructive text-sm font-bold animate-pulse">
+                      <div className="mt-2 text-destructive text-xs font-bold animate-pulse">
                         🚨 NEEDS WALK
                       </div>
                     )}
                   </button>
+                </div>
 
-                  {/* Music - Bottom - Clickable */}
+                {/* Right Column: Music + Electricity */}
+                <div className="flex flex-col h-full border-l-2 border-border">
+                  {/* Music - Top - Clickable */}
                   <button
                     onClick={() => api?.scrollTo(2)}
-                    className="h-[210px] flex flex-col items-center justify-center bg-card border-t-2 border-border px-6 hover:bg-accent/5 transition-colors cursor-pointer"
+                    className="h-[210px] flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer"
                   >
-                    <h2 className="text-2xl font-bold text-foreground mb-3">Now Playing</h2>
+                    <h2 className="text-xl font-bold text-foreground mb-2">Now Playing</h2>
                     {nowPlaying?.playing ? (
-                      <div className="space-y-2 text-center">
-                        <p className="text-xl font-bold text-foreground line-clamp-2">{nowPlaying.title}</p>
-                        <p className="text-base text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
+                      <div className="space-y-1 text-center px-2">
+                        <p className="text-lg font-bold text-foreground line-clamp-2">{nowPlaying.title}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
                       </div>
                     ) : (
-                      <p className="text-lg font-semibold text-muted-foreground">Not Playing</p>
+                      <p className="text-base font-semibold text-muted-foreground">Not Playing</p>
                     )}
+                  </button>
+
+                  {/* Electricity - Bottom - Clickable */}
+                  <button
+                    onClick={() => api?.scrollTo(4)}
+                    className="h-[210px] flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer bg-gradient-to-br from-green-500/10 to-blue-500/10"
+                  >
+                    <Zap className="h-10 w-10 text-green-500 mb-2" />
+                    <h2 className="text-lg font-bold text-foreground">Electricity</h2>
+                    <p className="text-xs text-muted-foreground mt-1">Price Tracker</p>
                   </button>
                 </div>
               </div>
@@ -691,6 +705,14 @@ const Index = () => {
                 </div>
               </div>
             </div>
+          </CarouselItem>
+
+          {/* Electricity Screen */}
+          <CarouselItem className="h-screen">
+            <Electricity onBack={() => {
+              api?.scrollTo(0);
+              setTimerPaused(false);
+            }} />
           </CarouselItem>
         </CarouselContent>
         
