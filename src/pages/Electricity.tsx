@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Zap, Clock, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface ElectricityProps {
   onBack: () => void;
@@ -227,56 +228,41 @@ export default function Electricity({ onBack }: ElectricityProps) {
                 {/* Vertical Bar Chart */}
                 {recommendations?.prices && recommendations.prices.length > 0 ? (
                   <div className="space-y-2">
-                    <div className="flex gap-2">
-                      {/* Y-axis */}
-                      <div className="flex flex-col justify-between h-64 text-xs text-muted-foreground pr-2">
-                        {[60, 45, 30, 15, 0].map((value) => (
-                          <div key={value} className="text-right">
-                            ${value}
-                          </div>
-                        ))}
-                      </div>
-                      
-                      {/* Chart Area */}
-                      <div className="flex-1 relative">
-                        {/* Gridlines */}
-                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
-                          {[0, 1, 2, 3, 4].map((i) => (
-                            <div key={i} className="w-full border-t border-border/30" />
-                          ))}
+                    {/* Build chart data with per-label series so each bar is colored */}
+                    {(() => {
+                      const chartData = recommendations.prices.map((price: any) => {
+                        const ts = new Date(price.timestamp);
+                        const p = Number(price.lmp_usd_mwh);
+                        const lbl = getPriceLabel(p, recommendations.prices);
+                        return {
+                          time: formatTime12Hr(ts),
+                          price: p,
+                          great: lbl === 'great' ? p : 0,
+                          good: lbl === 'good' ? p : 0,
+                          okay: lbl === 'okay' ? p : 0,
+                          avoid: lbl === 'avoid' ? p : 0,
+                        };
+                      });
+
+                      return (
+                        <div className="h-64 w-full">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis dataKey="time" interval={0} tick={{ fontSize: 10 }} />
+                              <YAxis tick={{ fontSize: 10 }} width={40} tickFormatter={(v) => `$${v}`} domain={[0, 'auto']} />
+                              <Tooltip formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Price']} />
+                              {/* One bar per label, stacked so only one segment shows per hour */}
+                              <Bar dataKey="great" stackId="a" fill="#22c55e" />
+                              <Bar dataKey="good" stackId="a" fill="#3b82f6" />
+                              <Bar dataKey="okay" stackId="a" fill="#f59e0b" />
+                              <Bar dataKey="avoid" stackId="a" fill="#ef4444" />
+                            </BarChart>
+                          </ResponsiveContainer>
                         </div>
-                        
-                        {/* Bars */}
-                        <div className="relative flex items-end justify-between gap-1 h-64">
-                          {recommendations.prices.map((price: any, idx: number) => {
-                            const timestamp = new Date(price.timestamp);
-                            const label = getPriceLabel(price.lmp_usd_mwh, recommendations.prices);
-                            const maxScale = 60; // Fixed scale to $60/MWh
-                            const barHeight = Math.min((price.lmp_usd_mwh / maxScale) * 100, 100);
-                            
-                            return (
-                              <div key={idx} className="flex-1 flex flex-col items-center gap-1 min-w-0">
-                                <div className="w-full flex flex-col items-center justify-end h-full">
-                                  <span className="text-[10px] font-semibold text-foreground mb-1">
-                                    ${price.lmp_usd_mwh.toFixed(0)}
-                                  </span>
-                                  <div
-                                    className={`w-full ${getLabelColor(label)} rounded-t transition-all relative group cursor-pointer`}
-                                    style={{ height: `${barHeight}%` }}
-                                    title={`${formatTime12Hr(timestamp)} - ${getLabelText(label)} - $${price.lmp_usd_mwh.toFixed(2)}/MWh`}
-                                  >
-                                  </div>
-                                </div>
-                                <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                                  {formatTime12Hr(timestamp)}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                    
+                      );
+                    })()}
+
                     {/* X-axis label */}
                     <div className="text-xs text-muted-foreground text-center">
                       Time of Day
