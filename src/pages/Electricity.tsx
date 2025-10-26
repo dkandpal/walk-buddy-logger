@@ -227,38 +227,59 @@ export default function Electricity({ onBack }: ElectricityProps) {
                 {/* Vertical Bar Chart */}
                 {recommendations?.prices && recommendations.prices.length > 0 ? (
                   <div className="space-y-2">
-                    {/* Chart Area */}
-                    <div className="flex items-end justify-between gap-1 h-64 border-l-2 border-b-2 border-border pl-2 pb-2">
-                      {recommendations.prices.map((price: any, idx: number) => {
-                        const timestamp = new Date(price.timestamp);
-                        const label = getPriceLabel(price.lmp_usd_mwh, recommendations.prices);
-                        const maxPrice = Math.max(...recommendations.prices.map((p: any) => p.lmp_usd_mwh));
-                        const barHeight = (price.lmp_usd_mwh / maxPrice) * 100;
-                        
-                        return (
-                          <div key={idx} className="flex-1 flex flex-col items-center gap-1 min-w-0">
-                            <div className="w-full flex flex-col items-center">
-                              <span className="text-[10px] font-semibold text-foreground mb-1">
-                                ${price.lmp_usd_mwh.toFixed(0)}
-                              </span>
-                              <div
-                                className={`w-full ${getLabelColor(label)} rounded-t transition-all relative group cursor-pointer`}
-                                style={{ height: `${barHeight}%` }}
-                                title={`${formatTime12Hr(timestamp)} - ${getLabelText(label)} - $${price.lmp_usd_mwh.toFixed(2)}/MWh`}
-                              >
-                              </div>
-                            </div>
-                            <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
-                              {formatTime12Hr(timestamp)}
-                            </span>
+                    <div className="flex gap-2">
+                      {/* Y-axis */}
+                      <div className="flex flex-col justify-between h-64 text-xs text-muted-foreground pr-2">
+                        {[60, 45, 30, 15, 0].map((value) => (
+                          <div key={value} className="text-right">
+                            ${value}
                           </div>
-                        );
-                      })}
+                        ))}
+                      </div>
+                      
+                      {/* Chart Area */}
+                      <div className="flex-1 relative">
+                        {/* Gridlines */}
+                        <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                          {[0, 1, 2, 3, 4].map((i) => (
+                            <div key={i} className="w-full border-t border-border/30" />
+                          ))}
+                        </div>
+                        
+                        {/* Bars */}
+                        <div className="relative flex items-end justify-between gap-1 h-64">
+                          {recommendations.prices.map((price: any, idx: number) => {
+                            const timestamp = new Date(price.timestamp);
+                            const label = getPriceLabel(price.lmp_usd_mwh, recommendations.prices);
+                            const maxScale = 60; // Fixed scale to $60/MWh
+                            const barHeight = Math.min((price.lmp_usd_mwh / maxScale) * 100, 100);
+                            
+                            return (
+                              <div key={idx} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+                                <div className="w-full flex flex-col items-center justify-end h-full">
+                                  <span className="text-[10px] font-semibold text-foreground mb-1">
+                                    ${price.lmp_usd_mwh.toFixed(0)}
+                                  </span>
+                                  <div
+                                    className={`w-full ${getLabelColor(label)} rounded-t transition-all relative group cursor-pointer`}
+                                    style={{ height: `${barHeight}%` }}
+                                    title={`${formatTime12Hr(timestamp)} - ${getLabelText(label)} - $${price.lmp_usd_mwh.toFixed(2)}/MWh`}
+                                  >
+                                  </div>
+                                </div>
+                                <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                                  {formatTime12Hr(timestamp)}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                     
-                    {/* Y-axis label */}
+                    {/* X-axis label */}
                     <div className="text-xs text-muted-foreground text-center">
-                      Price ($/MWh)
+                      Time of Day
                     </div>
                   </div>
                 ) : (

@@ -29,15 +29,17 @@ serve(async (req) => {
     console.log(`Getting recommendations for ${appliance} (${requiredDuration} min) in zone ${zone}`);
 
     const now = new Date();
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // Fetch windows for today
+    // Fetch windows for today (full 24 hours)
     const { data: windows, error: windowError } = await supabase
       .from('electricity_windows')
       .select('*')
       .eq('zone', zone)
-      .gte('start_time', now.toISOString())
+      .gte('start_time', startOfDay.toISOString())
       .lte('start_time', endOfDay.toISOString())
       .order('start_time');
 
@@ -108,12 +110,12 @@ serve(async (req) => {
       duration: bestWindow.duration_minutes
     } : null;
 
-    // Get hourly breakdown for timeline
+    // Get hourly breakdown for timeline (full 24 hours)
     const { data: prices, error: priceError } = await supabase
       .from('electricity_prices')
       .select('*')
       .eq('zone', zone)
-      .gte('timestamp', now.toISOString())
+      .gte('timestamp', startOfDay.toISOString())
       .lte('timestamp', endOfDay.toISOString())
       .order('timestamp');
 
