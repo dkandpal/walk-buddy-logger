@@ -65,6 +65,26 @@ export default function Electricity({ onBack }: ElectricityProps) {
     }
   };
 
+  const formatTime12Hr = (date: Date) => {
+    const hours = date.getHours();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const hours12 = hours % 12 || 12;
+    return `${hours12}${ampm}`;
+  };
+
+  const getPriceLabel = (price: number, prices: any[]) => {
+    if (!prices || prices.length === 0) return 'okay';
+    const sortedPrices = [...prices].map(p => p.lmp_usd_mwh).sort((a, b) => a - b);
+    const p25 = sortedPrices[Math.floor(sortedPrices.length * 0.25)];
+    const p50 = sortedPrices[Math.floor(sortedPrices.length * 0.50)];
+    const p75 = sortedPrices[Math.floor(sortedPrices.length * 0.75)];
+    
+    if (price <= p25) return 'great';
+    if (price <= p50) return 'good';
+    if (price <= p75) return 'okay';
+    return 'avoid';
+  };
+
   return (
     <div className="h-screen w-full bg-background flex flex-col">
       {/* Header */}
@@ -185,7 +205,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex items-center gap-4 text-sm flex-wrap">
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-4 bg-green-500 rounded"></div>
                     <span>Great (0-25%)</span>
@@ -204,23 +224,39 @@ export default function Electricity({ onBack }: ElectricityProps) {
                   </div>
                 </div>
 
-                {/* Timeline Bars */}
-                <div className="grid grid-cols-24 gap-1">
-                  {recommendations?.windows?.map((window: any, idx: number) => {
-                    const startHour = new Date(window.start_time).getHours();
-                    const durationHours = Math.ceil(window.duration_minutes / 60);
-                    
-                    return Array.from({ length: durationHours }).map((_, hourIdx) => (
-                      <div
-                        key={`${idx}-${hourIdx}`}
-                        className={`h-16 ${getLabelColor(window.label)} rounded flex flex-col items-center justify-center text-xs text-white font-semibold`}
-                        title={`${startHour + hourIdx}:00 - ${getLabelText(window.label)} - $${window.avg_price?.toFixed(2)}/MWh`}
-                      >
-                        <span>{(startHour + hourIdx) % 24}</span>
-                      </div>
-                    ));
-                  })}
-                </div>
+                {/* Bar Chart */}
+                {recommendations?.prices && recommendations.prices.length > 0 ? (
+                  <div className="space-y-1">
+                    {recommendations.prices.map((price: any, idx: number) => {
+                      const timestamp = new Date(price.timestamp);
+                      const label = getPriceLabel(price.lmp_usd_mwh, recommendations.prices);
+                      const maxPrice = Math.max(...recommendations.prices.map((p: any) => p.lmp_usd_mwh));
+                      const barWidth = (price.lmp_usd_mwh / maxPrice) * 100;
+                      
+                      return (
+                        <div key={idx} className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-muted-foreground w-12 text-right">
+                            {formatTime12Hr(timestamp)}
+                          </span>
+                          <div className="flex-1 relative h-8 bg-muted/30 rounded overflow-hidden">
+                            <div
+                              className={`h-full ${getLabelColor(label)} flex items-center justify-end pr-2 transition-all`}
+                              style={{ width: `${barWidth}%` }}
+                            >
+                              <span className="text-xs font-semibold text-white">
+                                ${price.lmp_usd_mwh.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No price data available
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
