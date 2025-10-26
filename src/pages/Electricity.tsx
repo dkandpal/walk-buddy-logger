@@ -143,64 +143,47 @@ export default function Electricity({ onBack }: ElectricityProps) {
             </CardContent>
           </Card>
 
-          {/* Best Time Recommendations */}
-          {!isLoading && recommendations?.recommendation && (
-            <div className="grid md:grid-cols-2 gap-4">
-              <Card className="border-2 border-green-500">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-600">
-                    <TrendingDown className="h-5 w-5" />
-                    Best Window {recommendations.recommendation.time === 'tonight' ? 'Tonight' : 'Today'}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-bold text-foreground">
-                      {recommendations.recommendation.startTime} - {recommendations.recommendation.endTime}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Avg. Price: ${recommendations.recommendation.avgPrice?.toFixed(2)}/MWh
-                    </p>
-                    <p className="text-sm text-green-600 font-semibold">
-                      Bottom 25% - Perfect time to run your {selectedAppliance}!
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+          {/* Main Content - Side by Side */}
+          <div className="flex gap-4">
+            {/* Best Window Card - 20% */}
+            <div className="w-1/5">
+              {!isLoading && recommendations?.recommendation && (
+                <Card className="border-2 border-green-500 h-full">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-green-600">
+                      <TrendingDown className="h-5 w-5" />
+                      Best Window {recommendations.recommendation.time === 'tonight' ? 'Tonight' : 'Today'}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-2xl font-bold text-foreground">
+                        {recommendations.recommendation.startTime} - {recommendations.recommendation.endTime}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Avg. Price: ${recommendations.recommendation.avgPrice?.toFixed(2)}/MWh
+                      </p>
+                      <p className="text-sm text-green-600 font-semibold">
+                        Bottom 25% - Perfect time to run your {selectedAppliance}!
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
-                    Duration Needed
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-2xl font-bold text-foreground">
-                      {recommendations.requiredDuration} minutes
+              {!isLoading && !recommendations?.recommendation && (
+                <Card className="border-2 border-yellow-500 h-full">
+                  <CardContent className="py-8">
+                    <p className="text-center text-muted-foreground">
+                      No optimal windows found for {selectedAppliance} today. Check back later!
                     </p>
-                    <p className="text-sm text-muted-foreground">
-                      For {APPLIANCES.find(a => a.id === selectedAppliance)?.name}
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          )}
 
-          {!isLoading && !recommendations?.recommendation && (
-            <Card className="border-2 border-yellow-500">
-              <CardContent className="py-8">
-                <p className="text-center text-muted-foreground">
-                  No optimal windows found for {selectedAppliance} today. Check back later!
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* 24-Hour Timeline */}
-          <Card>
+            {/* 24-Hour Timeline Chart - 80% */}
+            <Card className="w-4/5">
             <CardHeader>
               <CardTitle>24-Hour Price Timeline</CardTitle>
             </CardHeader>
@@ -275,7 +258,8 @@ export default function Electricity({ onBack }: ElectricityProps) {
                 )}
               </div>
             </CardContent>
-          </Card>
+            </Card>
+          </div>
 
           {/* Coming Soon Section */}
           <Card className="border-2 border-muted">
