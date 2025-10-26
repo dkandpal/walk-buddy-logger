@@ -224,33 +224,42 @@ export default function Electricity({ onBack }: ElectricityProps) {
                   </div>
                 </div>
 
-                {/* Bar Chart */}
+                {/* Vertical Bar Chart */}
                 {recommendations?.prices && recommendations.prices.length > 0 ? (
-                  <div className="space-y-1">
-                    {recommendations.prices.map((price: any, idx: number) => {
-                      const timestamp = new Date(price.timestamp);
-                      const label = getPriceLabel(price.lmp_usd_mwh, recommendations.prices);
-                      const maxPrice = Math.max(...recommendations.prices.map((p: any) => p.lmp_usd_mwh));
-                      const barWidth = (price.lmp_usd_mwh / maxPrice) * 100;
-                      
-                      return (
-                        <div key={idx} className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-muted-foreground w-12 text-right">
-                            {formatTime12Hr(timestamp)}
-                          </span>
-                          <div className="flex-1 relative h-8 bg-muted/30 rounded overflow-hidden">
-                            <div
-                              className={`h-full ${getLabelColor(label)} flex items-center justify-end pr-2 transition-all`}
-                              style={{ width: `${barWidth}%` }}
-                            >
-                              <span className="text-xs font-semibold text-white">
-                                ${price.lmp_usd_mwh.toFixed(2)}
+                  <div className="space-y-2">
+                    {/* Chart Area */}
+                    <div className="flex items-end justify-between gap-1 h-64 border-l-2 border-b-2 border-border pl-2 pb-2">
+                      {recommendations.prices.map((price: any, idx: number) => {
+                        const timestamp = new Date(price.timestamp);
+                        const label = getPriceLabel(price.lmp_usd_mwh, recommendations.prices);
+                        const maxPrice = Math.max(...recommendations.prices.map((p: any) => p.lmp_usd_mwh));
+                        const barHeight = (price.lmp_usd_mwh / maxPrice) * 100;
+                        
+                        return (
+                          <div key={idx} className="flex-1 flex flex-col items-center gap-1 min-w-0">
+                            <div className="w-full flex flex-col items-center">
+                              <span className="text-[10px] font-semibold text-foreground mb-1">
+                                ${price.lmp_usd_mwh.toFixed(0)}
                               </span>
+                              <div
+                                className={`w-full ${getLabelColor(label)} rounded-t transition-all relative group cursor-pointer`}
+                                style={{ height: `${barHeight}%` }}
+                                title={`${formatTime12Hr(timestamp)} - ${getLabelText(label)} - $${price.lmp_usd_mwh.toFixed(2)}/MWh`}
+                              >
+                              </div>
                             </div>
+                            <span className="text-[10px] font-medium text-muted-foreground whitespace-nowrap">
+                              {formatTime12Hr(timestamp)}
+                            </span>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Y-axis label */}
+                    <div className="text-xs text-muted-foreground text-center">
+                      Price ($/MWh)
+                    </div>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
