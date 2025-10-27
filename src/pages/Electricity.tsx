@@ -33,7 +33,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
   }, []);
 
   // Get recommendations
-  const { data: recommendations, isLoading } = useQuery({
+  const { data: recommendations, isLoading, error } = useQuery({
     queryKey: ['electricity-recommendations', selectedAppliance],
     queryFn: async () => {
       const { data, error } = await supabase.functions.invoke('get-electricity-recommendations', {
@@ -44,6 +44,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
       return data;
     },
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    retry: false,
   });
 
   const getLabelColor = (label: string) => {
@@ -123,7 +124,20 @@ export default function Electricity({ onBack }: ElectricityProps) {
           <div className="flex gap-4">
             {/* Best Window Card - 20% */}
             <div className="w-1/5">
-              {!isLoading && recommendations?.recommendation && (
+              {error && (
+                <Card className="border-2 border-red-500 h-full">
+                  <CardContent className="py-8">
+                    <p className="text-center text-red-600 font-semibold">
+                      Data Unavailable
+                    </p>
+                    <p className="text-center text-sm text-muted-foreground mt-2">
+                      Unable to fetch electricity pricing data. Please try again later.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {!error && !isLoading && recommendations?.recommendation && (
                 <Card className="border-2 border-green-500 h-full">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2 text-green-600">
@@ -147,7 +161,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
                 </Card>
               )}
 
-              {!isLoading && !recommendations?.recommendation && (
+              {!error && !isLoading && !recommendations?.recommendation && (
                 <Card className="border-2 border-yellow-500 h-full">
                   <CardContent className="py-8">
                     <p className="text-center text-muted-foreground">
@@ -164,6 +178,14 @@ export default function Electricity({ onBack }: ElectricityProps) {
               <CardTitle>24-Hour Price Timeline</CardTitle>
             </CardHeader>
             <CardContent>
+              {error ? (
+                <div className="py-12 text-center">
+                  <p className="text-red-600 font-semibold text-lg">Data Unavailable</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Unable to fetch electricity pricing data. Please try again later.
+                  </p>
+                </div>
+              ) : (
               <div className="space-y-4">
                 <div className="flex items-center gap-4 text-sm flex-wrap">
                   <div className="flex items-center gap-2">
@@ -233,6 +255,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
                   </p>
                 )}
               </div>
+              )}
             </CardContent>
             </Card>
           </div>

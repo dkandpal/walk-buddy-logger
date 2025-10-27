@@ -101,27 +101,15 @@ serve(async (req) => {
       console.log(`Fetched ${prices.length} real NYISO price points for Zone J`);
       
     } catch (error) {
-      console.error('Error fetching NYISO data, falling back to simulated data:', error);
-      dataSource = 'simulated';
-      
-      // Fallback: Generate simulated data
-      prices = [];
-      for (let i = 0; i < 24; i++) {
-        const timestamp = new Date(now);
-        timestamp.setHours(i, 0, 0, 0);
-        
-        // Simulate price variations (lower at night, higher during day)
-        const basePrice = 30;
-        const hourFactor = Math.sin((i - 6) * Math.PI / 12) * 15;
-        const randomVariation = Math.random() * 10 - 5;
-        const price = Math.max(10, basePrice + hourFactor + randomVariation);
-        
-        prices.push({
-          timestamp: timestamp.toISOString(),
-          lmp_usd_mwh: Math.round(price * 100) / 100
-        });
-      }
-      console.log(`Generated ${prices.length} simulated price points`);
+      console.error('Error fetching NYISO data:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to fetch NYISO data';
+      return new Response(
+        JSON.stringify({ error: errorMessage, details: 'NYISO data unavailable' }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 503,
+        }
+      );
     }
 
     // Insert prices into database
