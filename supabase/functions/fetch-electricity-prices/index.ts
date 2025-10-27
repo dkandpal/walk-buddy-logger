@@ -24,41 +24,112 @@ serve(async (req) => {
 
     console.log('Fetching NYISO data...');
 
-    // Fetch real-time prices for Zone J
-    // NYISO API endpoint for real-time prices
-    const realtimeUrl = 'http://mis.nyiso.com/public/csv/realtime/';
-    const dayAheadUrl = 'http://mis.nyiso.com/public/csv/damlbmp/';
-    
-    // For MVP, we'll simulate data since NYISO requires specific date formatting
-    // In production, you would parse their CSV format properly
     const now = new Date();
-    const prices: PriceData[] = [];
-    
-    // Generate 24 hours of simulated data (replace with actual NYISO fetch)
-    for (let i = 0; i < 24; i++) {
-      const timestamp = new Date(now);
-      timestamp.setHours(i, 0, 0, 0);
-      
-      // Simulate price variations (lower at night, higher during day)
-      const basePrice = 30;
-      const hourFactor = Math.sin((i - 6) * Math.PI / 12) * 15;
-      const randomVariation = Math.random() * 10 - 5;
-      const price = Math.max(10, basePrice + hourFactor + randomVariation);
-      
-      prices.push({
-        timestamp: timestamp.toISOString(),
-        lmp_usd_mwh: Math.round(price * 100) / 100
-      });
-    }
+    let prices: PriceData[] = [];
+    let dataSource = 'real-time';
 
-    console.log(`Generated ${prices.length} price points`);
+    try {
+      // Build NYISO CSV URL for today's date in Eastern Time
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/New_York',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      const parts = formatter.formatToParts(now);
+      const month = parts.find(p => p.type === 'month')?.value;
+      const day = parts.find(p => p.type === 'day')?.value;
+      const year = parts.find(p => p.type === 'year')?.value;
+      const dateStr = `${year}${month}${day}`;
+      
+      const nyisoUrl = `http://mis.nyiso.com/public/csv/realtime/${dateStr}realtime_zone.csv`;
+      console.log(`Fetching NYISO data from: ${nyisoUrl}`);
+      
+      const response = await fetch(nyisoUrl);
+      
+      if (!response.ok) {
+        throw new Error(`NYISO API returned ${response.status}`);
+      }
+      
+      const csvText = await response.text();
+      const lines = csvText.split('\n');
+      
+      // Parse CSV header to find column indices
+      const header = lines[0].split(',');
+      const timeStampIdx = header.findIndex(h => h.trim().toLowerCase().includes('time stamp'));
+      const nameIdx = header.findIndex(h => h.trim().toLowerCase() === 'name');
+      const lbmpIdx = header.findIndex(h => h.trim().toLowerCase().includes('lbmp'));
+      
+      if (timeStampIdx === -1 || nameIdx === -1 || lbmpIdx === -1) {
+        throw new Error('Could not find required columns in NYISO CSV');
+      }
+      
+      // Parse data rows for Zone J
+      for (let i = 1; i < lines.length; i++) {
+        const line = lines[i].trim();
+        if (!line) continue;
+        
+        const columns = line.split(',');
+        const zoneName = columns[nameIdx]?.trim();
+        
+        // Filter for Zone J (NYC)
+        if (zoneName === 'ZONE J' || zoneName === 'Z.J') {
+          const timeStamp = columns[timeStampIdx]?.trim();
+          const lbmp = parseFloat(columns[lbmpIdx]?.trim());
+          
+          if (timeStamp && !isNaN(lbmp)) {
+            // Parse NYISO timestamp format: "MM/DD/YYYY HH:MM:SS"
+            const [datePart, timePart] = timeStamp.split(' ');
+            const [month, day, year] = datePart.split('/');
+            const [hour, minute] = timePart.split(':');
+            
+            // Create date in Eastern Time
+            const estDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00-05:00`);
+            
+            prices.push({
+              timestamp: estDate.toISOString(),
+              lmp_usd_mwh: Math.round(lbmp * 100) / 100
+            });
+          }
+        }
+      }
+      
+      if (prices.length === 0) {
+        throw new Error('No Zone J data found in NYISO CSV');
+      }
+      
+      console.log(`Fetched ${prices.length} real NYISO price points for Zone J`);
+      
+    } catch (error) {
+      console.error('Error fetching NYISO data, falling back to simulated data:', error);
+      dataSource = 'simulated';
+      
+      // Fallback: Generate simulated data
+      prices = [];
+      for (let i = 0; i < 24; i++) {
+        const timestamp = new Date(now);
+        timestamp.setHours(i, 0, 0, 0);
+        
+        // Simulate price variations (lower at night, higher during day)
+        const basePrice = 30;
+        const hourFactor = Math.sin((i - 6) * Math.PI / 12) * 15;
+        const randomVariation = Math.random() * 10 - 5;
+        const price = Math.max(10, basePrice + hourFactor + randomVariation);
+        
+        prices.push({
+          timestamp: timestamp.toISOString(),
+          lmp_usd_mwh: Math.round(price * 100) / 100
+        });
+      }
+      console.log(`Generated ${prices.length} simulated price points`);
+    }
 
     // Insert prices into database
     const priceInserts = prices.map(p => ({
       timestamp: p.timestamp,
       zone: 'J',
       lmp_usd_mwh: p.lmp_usd_mwh,
-      source: 'real-time'
+      source: dataSource
     }));
 
     const { error: insertError } = await supabase
@@ -171,7 +242,8 @@ serve(async (req) => {
         success: true,
         prices: prices.length,
         windows: windows.length,
-        percentiles: { p25, p50, p75 }
+        percentiles: { p25, p50, p75 },
+        dataSource
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
