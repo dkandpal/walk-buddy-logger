@@ -119,30 +119,6 @@ export default function Electricity({ onBack }: ElectricityProps) {
             </p>
           </div>
 
-          {/* Appliance Selector */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Select Your Appliance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4">
-                {APPLIANCES.map((appliance) => (
-                  <Button
-                    key={appliance.id}
-                    onClick={() => setSelectedAppliance(appliance.id)}
-                    variant={selectedAppliance === appliance.id ? 'default' : 'outline'}
-                    className="flex-1"
-                  >
-                    {appliance.name}
-                    <span className="ml-2 text-xs opacity-70">
-                      ({appliance.duration} min)
-                    </span>
-                  </Button>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Main Content - Side by Side */}
           <div className="flex gap-4">
             {/* Best Window Card - 20% */}
@@ -164,7 +140,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
                         Avg. Price: ${recommendations.recommendation.avgPrice?.toFixed(2)}/MWh
                       </p>
                       <p className="text-sm text-green-600 font-semibold">
-                        Bottom 25% - Perfect time to run your {selectedAppliance}!
+                        Bottom 25% - Perfect time to run appliances!
                       </p>
                     </div>
                   </CardContent>
@@ -175,7 +151,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
                 <Card className="border-2 border-yellow-500 h-full">
                   <CardContent className="py-8">
                     <p className="text-center text-muted-foreground">
-                      No optimal windows found for {selectedAppliance} today. Check back later!
+                      No optimal windows found today. Check back later!
                     </p>
                   </CardContent>
                 </Card>
@@ -261,21 +237,6 @@ export default function Electricity({ onBack }: ElectricityProps) {
             </Card>
           </div>
 
-          {/* Coming Soon Section */}
-          <Card className="border-2 border-muted">
-            <CardHeader>
-              <CardTitle className="text-muted-foreground">Coming Soon</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li>• Web push notifications for optimal pricing windows</li>
-                <li>• Custom alert rules (e.g., "Alert me at 6pm if there's a great window tonight")</li>
-                <li>• Time-of-Use (TOU) plan support with peak hour detection</li>
-                <li>• Additional regions and ISO zones</li>
-                <li>• Google Login authentication</li>
-              </ul>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
