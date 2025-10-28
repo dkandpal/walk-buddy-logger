@@ -212,11 +212,18 @@ export default function Electricity({ onBack }: ElectricityProps) {
                     {/* Build chart data with per-label series so each bar is colored */}
                     {(() => {
                       // Sort prices by timestamp to ensure chart starts at midnight
+                      // Sort prices by timestamp to ensure chart starts at midnight (local)
                       const sortedPrices = [...recommendations.prices].sort((a: any, b: any) => 
                         new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
                       );
+
+                      // Rotate so the first item is local midnight (00:00)
+                      const midnightIndex = sortedPrices.findIndex((p: any) => new Date(p.timestamp).getHours() === 0);
+                      const ordered = midnightIndex > -1
+                        ? [...sortedPrices.slice(midnightIndex), ...sortedPrices.slice(0, midnightIndex)]
+                        : sortedPrices;
                       
-                      const chartData = sortedPrices.map((price: any) => {
+                      const chartData = ordered.map((price: any) => {
                         const ts = new Date(price.timestamp);
                         const p = Number(price.lmp_usd_mwh);
                         const lbl = getPriceLabel(p, recommendations.prices);
