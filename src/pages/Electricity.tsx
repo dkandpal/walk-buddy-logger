@@ -211,7 +211,12 @@ export default function Electricity({ onBack }: ElectricityProps) {
                   <div className="space-y-2">
                     {/* Build chart data with per-label series so each bar is colored */}
                     {(() => {
-                      const chartData = recommendations.prices.map((price: any) => {
+                      // Sort prices by timestamp to ensure chart starts at midnight
+                      const sortedPrices = [...recommendations.prices].sort((a: any, b: any) => 
+                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                      );
+                      
+                      const chartData = sortedPrices.map((price: any) => {
                         const ts = new Date(price.timestamp);
                         const p = Number(price.lmp_usd_mwh);
                         const lbl = getPriceLabel(p, recommendations.prices);

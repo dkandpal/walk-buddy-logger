@@ -48,30 +48,35 @@ serve(async (req) => {
       throw windowError;
     }
 
-    // Find best windows for appliance
-    const greatWindows = windows?.filter(w => 
+    // Filter for future windows only (windows that haven't ended yet)
+    const futureWindows = windows?.filter(w => new Date(w.end_time) > now) || [];
+    
+    console.log(`Found ${futureWindows.length} future windows out of ${windows?.length || 0} total windows`);
+
+    // Find best windows for appliance (only from future windows)
+    const greatWindows = futureWindows.filter(w => 
       w.label === 'great' && w.duration_minutes >= requiredDuration
-    ) || [];
+    );
 
     // If no single great window is long enough, try to find consecutive great windows
     let bestWindow = null;
     if (greatWindows.length > 0) {
       bestWindow = greatWindows[0];
     } else {
-      // Try to combine consecutive great windows
-      for (let i = 0; i < (windows?.length || 0); i++) {
-        if (windows![i].label === 'great') {
-          let totalDuration = windows![i].duration_minutes;
-          let endWindow = windows![i];
+      // Try to combine consecutive great windows (only from future windows)
+      for (let i = 0; i < futureWindows.length; i++) {
+        if (futureWindows[i].label === 'great') {
+          let totalDuration = futureWindows[i].duration_minutes;
+          let endWindow = futureWindows[i];
           
-          for (let j = i + 1; j < windows!.length; j++) {
-            if (windows![j].label === 'great') {
-              totalDuration += windows![j].duration_minutes;
-              endWindow = windows![j];
+          for (let j = i + 1; j < futureWindows.length; j++) {
+            if (futureWindows[j].label === 'great') {
+              totalDuration += futureWindows[j].duration_minutes;
+              endWindow = futureWindows[j];
               
               if (totalDuration >= requiredDuration) {
                 bestWindow = {
-                  ...windows![i],
+                  ...futureWindows[i],
                   end_time: endWindow.end_time,
                   duration_minutes: totalDuration
                 };
@@ -85,6 +90,12 @@ serve(async (req) => {
           if (bestWindow) break;
         }
       }
+    }
+    
+    if (bestWindow) {
+      console.log(`Best window: ${new Date(bestWindow.start_time).toLocaleString()} - ${new Date(bestWindow.end_time).toLocaleString()}, avg price: $${bestWindow.avg_price}`);
+    } else {
+      console.log('No suitable windows found');
     }
 
     // Determine if it's "today" or "tonight"
