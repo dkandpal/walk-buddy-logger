@@ -109,6 +109,21 @@ const Index = () => {
     retryDelay: 1000,
   });
 
+  // Fetch electricity recommendations
+  const { data: electricityRecs } = useQuery({
+    queryKey: ['electricity-recommendations', 'laundry'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-electricity-recommendations', {
+        body: { appliance: 'laundry', zone: 'J' }
+      });
+      
+      if (error) throw error;
+      return data;
+    },
+    refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
+    retry: false,
+  });
+
   // Load last walk from database
   useEffect(() => {
     const loadLastWalk = async () => {
@@ -420,8 +435,14 @@ const Index = () => {
                     className="h-[210px] flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer bg-gradient-to-br from-green-500/10 to-blue-500/10"
                   >
                     <Zap className="h-10 w-10 text-green-500 mb-2" />
-                    <h2 className="text-lg font-bold text-foreground">Electricity</h2>
-                    <p className="text-xs text-muted-foreground mt-1">Price Tracker</p>
+                    <h2 className="text-lg font-bold text-foreground">Electricity Price Tracker</h2>
+                    {electricityRecs?.recommendation ? (
+                      <p className="text-sm text-foreground mt-2 font-semibold">
+                        Best Window: {electricityRecs.recommendation.startTime}-{electricityRecs.recommendation.endTime.replace(/\s?(AM|PM)/, '')} (${electricityRecs.recommendation.avgPrice?.toFixed(2)}/MWh)
+                      </p>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">Loading...</p>
+                    )}
                   </button>
                 </div>
               </div>
