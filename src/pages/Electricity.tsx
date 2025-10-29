@@ -39,22 +39,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
     fetchData();
   }, []);
 
-  // Get historical averages for the current day of week
-  const { data: historicalData, isLoading: isLoadingHistorical, error: errorHistorical } = useQuery({
-    queryKey: ['hourly-historical-averages'],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('get-hourly-historical-averages', {
-        body: { zone: 'J', weeks_back: 2 }
-      });
-      
-      if (error) throw error;
-      return data;
-    },
-    refetchInterval: 60 * 60 * 1000, // Refetch every hour
-    retry: false,
-  });
-
-  // Get recommendations
+  // Get recommendations and today's prices
   const { data: recommendations, isLoading, error } = useQuery({
     queryKey: ['electricity-recommendations', selectedAppliance],
     queryFn: async () => {
@@ -147,7 +132,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              Historical average prices by hour for {dayOfWeek}s (Past 2 weeks)
+              Today's day-ahead auction prices for NYC (NYISO Zone J)
             </p>
           </div>
 
@@ -162,8 +147,8 @@ export default function Electricity({ onBack }: ElectricityProps) {
                   </p>
                   <p className="text-sm text-muted-foreground">
                     {isWeekend 
-                      ? 'Weekend electricity demand is typically lower, resulting in more consistent pricing throughout the day. These are historical patterns from the past 2 weeks.'
-                      : 'Weekday demand peaks during morning (7-9 AM) and evening (5-9 PM) hours. These historical patterns can help you plan energy-intensive tasks during off-peak times.'
+                      ? 'Weekend electricity demand is typically lower, resulting in more consistent pricing throughout the day. Great for running large appliances anytime!'
+                      : 'Weekday demand peaks during morning (7-9 AM) and evening (5-9 PM) hours. Plan energy-intensive tasks during off-peak times for maximum savings.'
                     }
                   </p>
                 </div>
@@ -227,18 +212,18 @@ export default function Electricity({ onBack }: ElectricityProps) {
             <Card className="w-4/5">
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Historical Average by Hour</span>
+                <span>Today's 24-Hour Price Timeline</span>
                 <span className="text-sm font-normal text-muted-foreground">
-                  {isWeekend ? '🏖️ Weekend' : '💼 Weekday'} Pattern
+                  {isWeekend ? '🏖️ Weekend' : '💼 Weekday'} Rates
                 </span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {errorHistorical ? (
+              {error ? (
                 <div className="py-12 text-center">
                   <p className="text-red-600 font-semibold text-lg">Data Unavailable</p>
                   <p className="text-sm text-muted-foreground mt-2">
-                    Unable to fetch historical electricity data. Please try again later.
+                    Unable to fetch electricity pricing data. Please try again later.
                   </p>
                 </div>
               ) : (
@@ -262,43 +247,33 @@ export default function Electricity({ onBack }: ElectricityProps) {
                   </div>
                 </div>
 
-                {/* Historical Average Chart */}
-                {historicalData?.hourlyAverages && historicalData.hourlyAverages.length > 0 ? (
+                {/* Vertical Bar Chart */}
+                {recommendations?.prices && recommendations.prices.length > 0 ? (
                   <div className="space-y-2">
+                    {/* Build chart data with per-label series so each bar is colored */}
                     {(() => {
-                      // Filter out hours with no data and compute percentiles
-                      const validHours = historicalData.hourlyAverages.filter((h: any) => h.avgPrice !== null);
-                      const prices = validHours.map((h: any) => h.avgPrice).sort((a: number, b: number) => a - b);
+                      // Sort prices by timestamp to ensure chart starts at midnight
+                      const sortedPrices = [...recommendations.prices].sort((a: any, b: any) => 
+                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+                      );
+
+                      // Rotate so the first item is local midnight (00:00)
+                      const midnightIndex = sortedPrices.findIndex((p: any) => new Date(p.timestamp).getHours() === 0);
+                      const ordered = midnightIndex > -1
+                        ? [...sortedPrices.slice(midnightIndex), ...sortedPrices.slice(0, midnightIndex)]
+                        : sortedPrices;
                       
-                      const p25 = prices[Math.floor(prices.length * 0.25)] || 0;
-                      const p50 = prices[Math.floor(prices.length * 0.50)] || 0;
-                      const p75 = prices[Math.floor(prices.length * 0.75)] || 0;
-                      
-                      // Create chart data for all 24 hours
-                      const chartData = historicalData.hourlyAverages.map((hourData: any) => {
-                        const hour = hourData.hour;
-                        const price = hourData.avgPrice || 0;
-                        
-                        // Determine label based on percentiles
-                        let label = 'okay';
-                        if (price <= p25) label = 'great';
-                        else if (price <= p50) label = 'good';
-                        else if (price <= p75) label = 'okay';
-                        else label = 'avoid';
-                        
-                        // Format hour to 12-hour format
-                        const ampm = hour >= 12 ? 'PM' : 'AM';
-                        const hour12 = hour % 12 || 12;
-                        const timeLabel = `${hour12}${ampm}`;
-                        
+                      const chartData = ordered.map((price: any) => {
+                        const ts = new Date(price.timestamp);
+                        const p = Number(price.lmp_usd_mwh);
+                        const lbl = getPriceLabel(p, recommendations.prices);
                         return {
-                          time: timeLabel,
-                          price: price,
-                          great: label === 'great' ? price : 0,
-                          good: label === 'good' ? price : 0,
-                          okay: label === 'okay' ? price : 0,
-                          avoid: label === 'avoid' ? price : 0,
-                          hasData: hourData.avgPrice !== null,
+                          time: formatTime12Hr(ts),
+                          price: p,
+                          great: lbl === 'great' ? p : 0,
+                          good: lbl === 'good' ? p : 0,
+                          okay: lbl === 'okay' ? p : 0,
+                          avoid: lbl === 'avoid' ? p : 0,
                         };
                       });
 
@@ -309,12 +284,8 @@ export default function Electricity({ onBack }: ElectricityProps) {
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="time" interval={0} tick={{ fontSize: 10 }} />
                               <YAxis tick={{ fontSize: 10 }} width={40} tickFormatter={(v) => `$${v}`} domain={[0, 'auto']} />
-                              <Tooltip 
-                                formatter={(value: any, name: any, props: any) => {
-                                  if (!props.payload.hasData) return ['No data', 'Price'];
-                                  return [`$${Number(value).toFixed(2)}`, 'Avg Price'];
-                                }} 
-                              />
+                              <Tooltip formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Price']} />
+                              {/* One bar per label, stacked so only one segment shows per hour */}
                               <Bar dataKey="great" stackId="a" fill="#22c55e" />
                               <Bar dataKey="good" stackId="a" fill="#3b82f6" />
                               <Bar dataKey="okay" stackId="a" fill="#f59e0b" />
@@ -327,12 +298,12 @@ export default function Electricity({ onBack }: ElectricityProps) {
 
                     {/* X-axis label */}
                     <div className="text-xs text-muted-foreground text-center">
-                      Hour of Day (Historical {dayOfWeek} Average)
+                      Time of Day (Day-Ahead Auction Prices)
                     </div>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    {isLoadingHistorical ? 'Loading historical data...' : 'No historical data available'}
+                    No price data available
                   </p>
                 )}
               </div>
