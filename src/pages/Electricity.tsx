@@ -4,9 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Zap, Clock, TrendingDown, Calendar, Info } from "lucide-react";
+import { ArrowLeft, Zap, Clock, TrendingDown, Calendar, Info, DollarSign, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, ReferenceLine, ReferenceArea } from "recharts";
 
 interface ElectricityProps {
   onBack: () => void;
@@ -54,44 +54,71 @@ export default function Electricity({ onBack }: ElectricityProps) {
     retry: false,
   });
 
-  const getLabelColor = (label: string) => {
-    switch (label) {
-      case 'great': return 'bg-green-500';
-      case 'good': return 'bg-blue-500';
-      case 'okay': return 'bg-yellow-500';
-      case 'avoid': return 'bg-red-500';
-      default: return 'bg-gray-500';
-    }
+  // Aggregate 5-minute data into hourly averages
+  const aggregateToHourly = (prices: any[]) => {
+    if (!prices || prices.length === 0) return [];
+    
+    const hourlyData: { [hour: number]: { sum: number; count: number; timestamps: Date[] } } = {};
+    
+    prices.forEach((price: any) => {
+      const timestamp = new Date(price.timestamp);
+      const hour = timestamp.getHours();
+      
+      if (!hourlyData[hour]) {
+        hourlyData[hour] = { sum: 0, count: 0, timestamps: [] };
+      }
+      
+      hourlyData[hour].sum += Number(price.lmp_usd_mwh);
+      hourlyData[hour].count += 1;
+      hourlyData[hour].timestamps.push(timestamp);
+    });
+    
+    return Object.entries(hourlyData).map(([hour, data]) => ({
+      hour: parseInt(hour),
+      avgPrice: data.sum / data.count,
+      count: data.count
+    })).sort((a, b) => a.hour - b.hour);
   };
 
-  const getLabelText = (label: string) => {
-    switch (label) {
-      case 'great': return 'Great';
-      case 'good': return 'Good';
-      case 'okay': return 'Okay';
-      case 'avoid': return 'Avoid';
-      default: return 'Unknown';
-    }
-  };
-
-  const formatTime12Hr = (date: Date) => {
-    const hours = date.getHours();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const hours12 = hours % 12 || 12;
-    return `${hours12}${ampm}`;
-  };
-
-  const getPriceLabel = (price: number, prices: any[]) => {
-    if (!prices || prices.length === 0) return 'okay';
-    const sortedPrices = [...prices].map(p => p.lmp_usd_mwh).sort((a, b) => a - b);
-    const p25 = sortedPrices[Math.floor(sortedPrices.length * 0.25)];
-    const p50 = sortedPrices[Math.floor(sortedPrices.length * 0.50)];
-    const p75 = sortedPrices[Math.floor(sortedPrices.length * 0.75)];
+  const getPriceLabel = (price: number, allPrices: number[]) => {
+    if (!allPrices || allPrices.length === 0) return 'okay';
+    const sorted = [...allPrices].sort((a, b) => a - b);
+    const p25 = sorted[Math.floor(sorted.length * 0.25)];
+    const p50 = sorted[Math.floor(sorted.length * 0.50)];
+    const p75 = sorted[Math.floor(sorted.length * 0.75)];
     
     if (price <= p25) return 'great';
     if (price <= p50) return 'good';
     if (price <= p75) return 'okay';
     return 'avoid';
+  };
+
+  const formatHour = (hour: number) => {
+    if (hour === 0) return '12AM';
+    if (hour === 12) return '12PM';
+    if (hour < 12) return `${hour}AM`;
+    return `${hour - 12}PM`;
+  };
+
+  // Calculate statistics
+  const calculateStats = (hourlyData: any[]) => {
+    if (!hourlyData || hourlyData.length === 0) return null;
+    
+    const prices = hourlyData.map(d => d.avgPrice);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+    
+    const cheapestHour = hourlyData.find(d => d.avgPrice === minPrice);
+    const peakHour = hourlyData.find(d => d.avgPrice === maxPrice);
+    
+    return {
+      minPrice,
+      maxPrice,
+      avgPrice,
+      cheapestHour: cheapestHour?.hour,
+      peakHour: peakHour?.hour
+    };
   };
 
   return (
@@ -121,7 +148,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-3">
               <h2 className="text-3xl font-bold text-foreground">
-                Use power when it's cheapest and cleanest
+                Smart Energy Timing Dashboard
               </h2>
             </div>
             <div className="flex items-center justify-center gap-2 text-muted-foreground">
@@ -132,205 +159,281 @@ export default function Electricity({ onBack }: ElectricityProps) {
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              Today's day-ahead auction prices for NYC (NYISO Zone J)
+              NYISO Zone J (NYC) • Day-Ahead Market Prices
             </p>
           </div>
 
-          {/* Weekday vs Weekend Info Banner */}
-          <Card className={`border-l-4 ${isWeekend ? 'border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20' : 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20'}`}>
-            <CardContent className="py-4">
-              <div className="flex items-start gap-3">
-                <Info className={`h-5 w-5 mt-0.5 ${isWeekend ? 'text-blue-600' : 'text-orange-600'}`} />
-                <div className="space-y-1">
-                  <p className={`font-semibold ${isWeekend ? 'text-blue-900 dark:text-blue-100' : 'text-orange-900 dark:text-orange-100'}`}>
-                    {isWeekend ? 'Weekend Pricing Pattern' : 'Weekday Pricing Pattern'}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {isWeekend 
-                      ? 'Weekend electricity demand is typically lower, resulting in more consistent pricing throughout the day. Great for running large appliances anytime!'
-                      : 'Weekday demand peaks during morning (7-9 AM) and evening (5-9 PM) hours. Plan energy-intensive tasks during off-peak times for maximum savings.'
-                    }
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Main Content - Side by Side */}
-          <div className="flex gap-4">
-            {/* Best Window Card - 20% */}
-            <div className="w-1/5">
-              {error && (
-                <Card className="border-2 border-red-500 h-full">
-                  <CardContent className="py-8">
-                    <p className="text-center text-red-600 font-semibold">
-                      Data Unavailable
-                    </p>
-                    <p className="text-center text-sm text-muted-foreground mt-2">
-                      Unable to fetch electricity pricing data. Please try again later.
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {!error && !isLoading && recommendations?.recommendation && (
-                <Card className="border-2 border-green-500 h-full">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-green-600">
-                      <TrendingDown className="h-5 w-5" />
-                      Best Window {recommendations.recommendation.time === 'tonight' ? 'Tonight' : 'Today'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-2">
-                      <p className="text-2xl font-bold text-foreground">
-                        {recommendations.recommendation.startTime} - {recommendations.recommendation.endTime}
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Avg. Price: ${recommendations.recommendation.avgPrice?.toFixed(2)}/MWh
-                      </p>
-                      <p className="text-sm text-green-600 font-semibold">
-                        Bottom 25% - Perfect time to run appliances!
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {!error && !isLoading && !recommendations?.recommendation && (
-                <Card className="border-2 border-yellow-500 h-full">
-                  <CardContent className="py-8">
-                    <p className="text-center text-muted-foreground">
-                      No optimal windows found today. Check back later!
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-
-            {/* 24-Hour Timeline Chart - 80% */}
-            <Card className="w-4/5">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>Today's 24-Hour Price Timeline</span>
-                <span className="text-sm font-normal text-muted-foreground">
-                  {isWeekend ? '🏖️ Weekend' : '💼 Weekday'} Rates
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {error ? (
-                <div className="py-12 text-center">
-                  <p className="text-red-600 font-semibold text-lg">Data Unavailable</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Unable to fetch electricity pricing data. Please try again later.
-                  </p>
-                </div>
-              ) : (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 text-sm flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-green-500 rounded"></div>
-                    <span>Great (0-25%)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                    <span>Good (25-50%)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-                    <span>Okay (50-75%)</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-red-500 rounded"></div>
-                    <span>Avoid (75-100%)</span>
-                  </div>
-                </div>
-
-                {/* Line Chart */}
-                {recommendations?.prices && recommendations.prices.length > 0 ? (
-                  <div className="space-y-2">
-                    {(() => {
-                      // Sort prices by timestamp to ensure chart starts at midnight
-                      const sortedPrices = [...recommendations.prices].sort((a: any, b: any) => 
-                        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
-                      );
-
-                      // Rotate so the first item is local midnight (00:00)
-                      const midnightIndex = sortedPrices.findIndex((p: any) => new Date(p.timestamp).getHours() === 0);
-                      const ordered = midnightIndex > -1
-                        ? [...sortedPrices.slice(midnightIndex), ...sortedPrices.slice(0, midnightIndex)]
-                        : sortedPrices;
-                      
-                      const chartData = ordered.map((price: any) => {
-                        const ts = new Date(price.timestamp);
-                        const p = Number(price.lmp_usd_mwh);
-                        const lbl = getPriceLabel(p, recommendations.prices);
-                        return {
-                          time: formatTime12Hr(ts),
-                          price: p,
-                          label: lbl,
-                        };
-                      });
-
-                      const getDotColor = (label: string) => {
-                        switch (label) {
-                          case 'great': return '#22c55e';
-                          case 'good': return '#3b82f6';
-                          case 'okay': return '#f59e0b';
-                          case 'avoid': return '#ef4444';
-                          default: return '#6b7280';
-                        }
-                      };
-
-                      return (
-                        <div className="h-64 w-full">
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="time" interval={0} tick={{ fontSize: 10 }} />
-                              <YAxis tick={{ fontSize: 10 }} width={40} tickFormatter={(v) => `$${v}`} domain={[0, 'auto']} />
-                              <Tooltip formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Price']} />
-                              <Line 
-                                type="monotone" 
-                                dataKey="price" 
-                                stroke="hsl(var(--primary))" 
-                                strokeWidth={2}
-                                dot={(props: any) => {
-                                  const { cx, cy, payload } = props;
-                                  return (
-                                    <circle
-                                      cx={cx}
-                                      cy={cy}
-                                      r={4}
-                                      fill={getDotColor(payload.label)}
-                                      stroke="white"
-                                      strokeWidth={1}
-                                    />
-                                  );
-                                }}
-                              />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      );
-                    })()}
-
-                    {/* X-axis label */}
-                    <div className="text-xs text-muted-foreground text-center">
-                      Time of Day (Day-Ahead Auction Prices)
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    No price data available
-                  </p>
-                )}
-              </div>
-              )}
-            </CardContent>
+          {error ? (
+            <Card className="border-2 border-destructive">
+              <CardContent className="py-12 text-center">
+                <AlertTriangle className="h-12 w-12 text-destructive mx-auto mb-4" />
+                <p className="text-destructive font-semibold text-lg">Data Unavailable</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Unable to fetch electricity pricing data. Please try again later.
+                </p>
+              </CardContent>
             </Card>
-          </div>
+          ) : (
+            <>
+              {/* Summary Statistics */}
+              {recommendations?.prices && recommendations.prices.length > 0 && (() => {
+                const hourlyData = aggregateToHourly(recommendations.prices);
+                const stats = calculateStats(hourlyData);
+                const allPrices = hourlyData.map(d => d.avgPrice);
+
+                return (
+                  <>
+                    {/* Summary Tiles */}
+                    <div className="grid grid-cols-3 gap-4">
+                      {/* Cheapest Hour */}
+                      <Card className="border-2 border-green-500/50 bg-green-50/50 dark:bg-green-950/20">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-lg bg-green-500/20">
+                              <TrendingDown className="h-5 w-5 text-green-600 dark:text-green-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Cheapest Hour</p>
+                              <p className="text-2xl font-bold text-foreground">
+                                {stats?.cheapestHour !== undefined ? formatHour(stats.cheapestHour) : '--'}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            ${stats?.minPrice.toFixed(2)}/MWh
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Average Price */}
+                      <Card className="border-2 border-primary/50 bg-primary/5">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-lg bg-primary/20">
+                              <DollarSign className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Daily Average</p>
+                              <p className="text-2xl font-bold text-foreground">
+                                ${stats?.avgPrice.toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            Per MWh
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      {/* Peak Hour */}
+                      <Card className="border-2 border-red-500/50 bg-red-50/50 dark:bg-red-950/20">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="p-2 rounded-lg bg-red-500/20">
+                              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-muted-foreground">Peak Hour</p>
+                              <p className="text-2xl font-bold text-foreground">
+                                {stats?.peakHour !== undefined ? formatHour(stats.peakHour) : '--'}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            ${stats?.maxPrice.toFixed(2)}/MWh
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Main Chart */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>24-Hour Price Overview</span>
+                          <Badge variant="outline" className="font-normal">
+                            {isWeekend ? '🏖️ Weekend Pattern' : '💼 Weekday Pattern'}
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-6">
+                          {/* Legend */}
+                          <div className="flex items-center justify-center gap-6 text-sm">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                              <span className="text-muted-foreground">Great (0-25%)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                              <span className="text-muted-foreground">Good (25-50%)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                              <span className="text-muted-foreground">Okay (50-75%)</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                              <span className="text-muted-foreground">Avoid (75-100%)</span>
+                            </div>
+                          </div>
+
+                          {/* Chart */}
+                          <div className="h-80 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <AreaChart 
+                                data={hourlyData.map(d => ({
+                                  ...d,
+                                  label: getPriceLabel(d.avgPrice, allPrices),
+                                  hourLabel: formatHour(d.hour)
+                                }))}
+                                margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+                              >
+                                <defs>
+                                  <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
+                                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.05}/>
+                                  </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                                <XAxis 
+                                  dataKey="hourLabel" 
+                                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                                  interval={2}
+                                  stroke="hsl(var(--border))"
+                                />
+                                <YAxis 
+                                  tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                                  tickFormatter={(v) => `$${v.toFixed(0)}`}
+                                  domain={[0, (dataMax: number) => Math.ceil(dataMax * 1.2)]}
+                                  width={50}
+                                  stroke="hsl(var(--border))"
+                                />
+                                <Tooltip 
+                                  contentStyle={{
+                                    backgroundColor: 'hsl(var(--card))',
+                                    border: '1px solid hsl(var(--border))',
+                                    borderRadius: '8px',
+                                    padding: '8px 12px'
+                                  }}
+                                  formatter={(value: any, name: string, props: any) => {
+                                    const label = props.payload.label;
+                                    const labelColors: any = {
+                                      'great': '#22c55e',
+                                      'good': '#3b82f6',
+                                      'okay': '#f59e0b',
+                                      'avoid': '#ef4444'
+                                    };
+                                    return [
+                                      <span style={{ color: labelColors[label] }}>
+                                        ${Number(value).toFixed(2)}/MWh
+                                      </span>,
+                                      'Price'
+                                    ];
+                                  }}
+                                  labelFormatter={(label) => `${label}`}
+                                />
+                                
+                                {/* Reference lines for cheapest and peak */}
+                                {stats?.cheapestHour !== undefined && (
+                                  <ReferenceLine 
+                                    x={formatHour(stats.cheapestHour)} 
+                                    stroke="#22c55e" 
+                                    strokeDasharray="3 3"
+                                    label={{ 
+                                      value: '↓ Cheapest', 
+                                      position: 'top',
+                                      fill: '#22c55e',
+                                      fontSize: 11
+                                    }}
+                                  />
+                                )}
+                                {stats?.peakHour !== undefined && (
+                                  <ReferenceLine 
+                                    x={formatHour(stats.peakHour)} 
+                                    stroke="#ef4444" 
+                                    strokeDasharray="3 3"
+                                    label={{ 
+                                      value: '↑ Peak', 
+                                      position: 'top',
+                                      fill: '#ef4444',
+                                      fontSize: 11
+                                    }}
+                                  />
+                                )}
+                                
+                                <Area
+                                  type="monotone"
+                                  dataKey="avgPrice"
+                                  stroke="hsl(var(--primary))"
+                                  strokeWidth={3}
+                                  fill="url(#priceGradient)"
+                                  dot={(props: any) => {
+                                    const { cx, cy, payload } = props;
+                                    const colors: any = {
+                                      'great': '#22c55e',
+                                      'good': '#3b82f6',
+                                      'okay': '#f59e0b',
+                                      'avoid': '#ef4444'
+                                    };
+                                    return (
+                                      <circle
+                                        cx={cx}
+                                        cy={cy}
+                                        r={4}
+                                        fill={colors[payload.label]}
+                                        stroke="white"
+                                        strokeWidth={2}
+                                      />
+                                    );
+                                  }}
+                                  activeDot={{ r: 6, strokeWidth: 2, stroke: 'white' }}
+                                />
+                              </AreaChart>
+                            </ResponsiveContainer>
+                          </div>
+
+                          {/* Chart Footer */}
+                          <div className="text-center">
+                            <p className="text-xs text-muted-foreground">
+                              Hourly averages from day-ahead market prices • Updated every 5 minutes
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Best Window Recommendation */}
+                    {recommendations?.recommendation && (
+                      <Card className="border-2 border-green-500 bg-green-50/30 dark:bg-green-950/10">
+                        <CardHeader>
+                          <CardTitle className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                            <Zap className="h-5 w-5" />
+                            Recommended Action Window
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-2xl font-bold text-foreground mb-1">
+                                {recommendations.recommendation.startTime} - {recommendations.recommendation.endTime}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Best time to run appliances • Avg: ${recommendations.recommendation.avgPrice?.toFixed(2)}/MWh
+                              </p>
+                            </div>
+                            <Badge className="bg-green-500 text-white px-4 py-2 text-sm">
+                              Bottom 25% Pricing
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </>
+                );
+              })()}
+            </>
+          )}
 
         </div>
       </div>
