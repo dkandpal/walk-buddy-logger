@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Zap, Clock, TrendingDown, Calendar, Info } from "lucide-react";
 import { toast } from "sonner";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface ElectricityProps {
   onBack: () => void;
@@ -247,10 +247,9 @@ export default function Electricity({ onBack }: ElectricityProps) {
                   </div>
                 </div>
 
-                {/* Vertical Bar Chart */}
+                {/* Line Chart */}
                 {recommendations?.prices && recommendations.prices.length > 0 ? (
                   <div className="space-y-2">
-                    {/* Build chart data with per-label series so each bar is colored */}
                     {(() => {
                       // Sort prices by timestamp to ensure chart starts at midnight
                       const sortedPrices = [...recommendations.prices].sort((a: any, b: any) => 
@@ -270,27 +269,48 @@ export default function Electricity({ onBack }: ElectricityProps) {
                         return {
                           time: formatTime12Hr(ts),
                           price: p,
-                          great: lbl === 'great' ? p : 0,
-                          good: lbl === 'good' ? p : 0,
-                          okay: lbl === 'okay' ? p : 0,
-                          avoid: lbl === 'avoid' ? p : 0,
+                          label: lbl,
                         };
                       });
+
+                      const getDotColor = (label: string) => {
+                        switch (label) {
+                          case 'great': return '#22c55e';
+                          case 'good': return '#3b82f6';
+                          case 'okay': return '#f59e0b';
+                          case 'avoid': return '#ef4444';
+                          default: return '#6b7280';
+                        }
+                      };
 
                       return (
                         <div className="h-64 w-full">
                           <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
+                            <LineChart data={chartData} margin={{ top: 10, right: 10, left: 10, bottom: 20 }}>
                               <CartesianGrid strokeDasharray="3 3" />
                               <XAxis dataKey="time" interval={0} tick={{ fontSize: 10 }} />
                               <YAxis tick={{ fontSize: 10 }} width={40} tickFormatter={(v) => `$${v}`} domain={[0, 'auto']} />
                               <Tooltip formatter={(value: any) => [`$${Number(value).toFixed(2)}`, 'Price']} />
-                              {/* One bar per label, stacked so only one segment shows per hour */}
-                              <Bar dataKey="great" stackId="a" fill="#22c55e" />
-                              <Bar dataKey="good" stackId="a" fill="#3b82f6" />
-                              <Bar dataKey="okay" stackId="a" fill="#f59e0b" />
-                              <Bar dataKey="avoid" stackId="a" fill="#ef4444" />
-                            </BarChart>
+                              <Line 
+                                type="monotone" 
+                                dataKey="price" 
+                                stroke="hsl(var(--primary))" 
+                                strokeWidth={2}
+                                dot={(props: any) => {
+                                  const { cx, cy, payload } = props;
+                                  return (
+                                    <circle
+                                      cx={cx}
+                                      cy={cy}
+                                      r={4}
+                                      fill={getDotColor(payload.label)}
+                                      stroke="white"
+                                      strokeWidth={1}
+                                    />
+                                  );
+                                }}
+                              />
+                            </LineChart>
                           </ResponsiveContainer>
                         </div>
                       );
