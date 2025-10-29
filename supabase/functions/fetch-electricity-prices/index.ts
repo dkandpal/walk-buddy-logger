@@ -26,6 +26,7 @@ serve(async (req) => {
 
     const now = new Date();
     let prices: PriceData[] = [];
+    let uniquePrices: PriceData[] = [];
     let dataSource = 'real-time';
 
     try {
@@ -104,6 +105,15 @@ serve(async (req) => {
       
       console.log(`Fetched ${prices.length} real NYISO price points for Zone J`);
       
+      // Deduplicate by timestamp - keep the latest value for each unique timestamp
+      const priceMap = new Map<string, PriceData>();
+      prices.forEach(price => {
+        priceMap.set(price.timestamp, price);
+      });
+      uniquePrices = Array.from(priceMap.values());
+      
+      console.log(`After deduplication: ${uniquePrices.length} unique timestamps`);
+      
     } catch (error) {
       console.error('Error fetching NYISO data:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to fetch NYISO data';
@@ -117,7 +127,7 @@ serve(async (req) => {
     }
 
     // Insert prices into database
-    const priceInserts = prices.map(p => ({
+    const priceInserts = uniquePrices.map(p => ({
       timestamp: p.timestamp,
       zone: 'J',
       lmp_usd_mwh: p.lmp_usd_mwh,
