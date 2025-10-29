@@ -54,26 +54,30 @@ serve(async (req) => {
       const csvText = await response.text();
       const lines = csvText.split('\n');
       
-      // Parse CSV header to find column indices
-      const header = lines[0].split(',');
-      const timeStampIdx = header.findIndex(h => h.trim().toLowerCase().includes('time stamp'));
-      const nameIdx = header.findIndex(h => h.trim().toLowerCase() === 'name');
-      const lbmpIdx = header.findIndex(h => h.trim().toLowerCase().includes('lbmp'));
+      // Parse CSV header to find column indices - remove quotes from headers
+      const header = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+      const timeStampIdx = header.findIndex(h => h.toLowerCase().includes('time stamp'));
+      const nameIdx = header.findIndex(h => h.toLowerCase() === 'name');
+      const lbmpIdx = header.findIndex(h => h.toLowerCase().includes('lbmp'));
+      
+      console.log('CSV Headers:', header);
+      console.log('Column indices - timeStamp:', timeStampIdx, 'name:', nameIdx, 'lbmp:', lbmpIdx);
       
       if (timeStampIdx === -1 || nameIdx === -1 || lbmpIdx === -1) {
         throw new Error('Could not find required columns in NYISO CSV');
       }
       
-      // Parse data rows for Zone J
+      // Parse data rows for Zone J (NYC)
       for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
         
-        const columns = line.split(',');
-        const zoneName = columns[nameIdx]?.trim();
+        // Parse CSV line properly handling quoted values
+        const columns = line.split(',').map(col => col.replace(/^"|"$/g, '').trim());
+        const zoneName = columns[nameIdx];
         
-        // Filter for Zone J (NYC)
-        if (zoneName === 'ZONE J' || zoneName === 'Z.J') {
+        // Filter for Zone J which is N.Y.C. in the CSV
+        if (zoneName === 'N.Y.C.') {
           const timeStamp = columns[timeStampIdx]?.trim();
           const lbmp = parseFloat(columns[lbmpIdx]?.trim());
           
@@ -95,7 +99,7 @@ serve(async (req) => {
       }
       
       if (prices.length === 0) {
-        throw new Error('No Zone J data found in NYISO CSV');
+        throw new Error('No N.Y.C. (Zone J) data found in NYISO CSV');
       }
       
       console.log(`Fetched ${prices.length} real NYISO price points for Zone J`);
