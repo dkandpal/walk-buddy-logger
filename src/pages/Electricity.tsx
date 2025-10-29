@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Zap, Clock, TrendingDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ArrowLeft, Zap, Clock, TrendingDown, Calendar, Info } from "lucide-react";
 import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -19,6 +20,12 @@ const APPLIANCES = [
 
 export default function Electricity({ onBack }: ElectricityProps) {
   const [selectedAppliance, setSelectedAppliance] = useState('laundry');
+  
+  // Get current day info
+  const now = new Date();
+  const dayOfWeek = now.toLocaleDateString('en-US', { weekday: 'long' });
+  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
+  const dateStr = now.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
   // Fetch initial data on mount
   useEffect(() => {
@@ -111,14 +118,43 @@ export default function Electricity({ onBack }: ElectricityProps) {
       <div className="flex-1 overflow-auto p-8">
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Hero Section */}
-          <div className="text-center space-y-2">
-            <h2 className="text-3xl font-bold text-foreground">
-              Use power when it's cheapest and cleanest
-            </h2>
-            <p className="text-muted-foreground">
+          <div className="text-center space-y-3">
+            <div className="flex items-center justify-center gap-3">
+              <h2 className="text-3xl font-bold text-foreground">
+                Use power when it's cheapest and cleanest
+              </h2>
+            </div>
+            <div className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Calendar className="h-4 w-4" />
+              <span>{dateStr}</span>
+              <Badge variant={isWeekend ? "default" : "secondary"} className="ml-2">
+                {dayOfWeek}
+              </Badge>
+            </div>
+            <p className="text-sm text-muted-foreground">
               Real-time electricity pricing for NYC (NYISO Zone J)
             </p>
           </div>
+
+          {/* Weekday vs Weekend Info Banner */}
+          <Card className={`border-l-4 ${isWeekend ? 'border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20' : 'border-l-orange-500 bg-orange-50/50 dark:bg-orange-950/20'}`}>
+            <CardContent className="py-4">
+              <div className="flex items-start gap-3">
+                <Info className={`h-5 w-5 mt-0.5 ${isWeekend ? 'text-blue-600' : 'text-orange-600'}`} />
+                <div className="space-y-1">
+                  <p className={`font-semibold ${isWeekend ? 'text-blue-900 dark:text-blue-100' : 'text-orange-900 dark:text-orange-100'}`}>
+                    {isWeekend ? 'Weekend Pricing Pattern' : 'Weekday Pricing Pattern'}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {isWeekend 
+                      ? 'Weekend electricity demand is typically lower, resulting in more consistent pricing throughout the day. Great for running large appliances anytime!'
+                      : 'Weekday demand peaks during morning (7-9 AM) and evening (5-9 PM) hours. Plan energy-intensive tasks during off-peak times for maximum savings.'
+                    }
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Main Content - Side by Side */}
           <div className="flex gap-4">
@@ -175,7 +211,12 @@ export default function Electricity({ onBack }: ElectricityProps) {
             {/* 24-Hour Timeline Chart - 80% */}
             <Card className="w-4/5">
             <CardHeader>
-              <CardTitle>24-Hour Price Timeline</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>24-Hour Price Timeline</span>
+                <span className="text-sm font-normal text-muted-foreground">
+                  {isWeekend ? '🏖️ Weekend' : '💼 Weekday'} Rates
+                </span>
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {error ? (
