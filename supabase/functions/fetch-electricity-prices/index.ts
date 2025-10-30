@@ -27,7 +27,7 @@ serve(async (req) => {
     const now = new Date();
     let prices: PriceData[] = [];
     let uniquePrices: PriceData[] = [];
-    let dataSource = 'real-time';
+    let dataSource = 'day-ahead';
 
     try {
       // Build NYISO CSV URL for today's date in Eastern Time
@@ -43,8 +43,8 @@ serve(async (req) => {
       const year = parts.find(p => p.type === 'year')?.value;
       const dateStr = `${year}${month}${day}`;
       
-      const nyisoUrl = `http://mis.nyiso.com/public/csv/realtime/${dateStr}realtime_zone.csv`;
-      console.log(`Fetching NYISO data from: ${nyisoUrl}`);
+      const nyisoUrl = `http://mis.nyiso.com/public/csv/damlbmp/${dateStr}damlbmp_zone.csv`;
+      console.log(`Fetching NYISO Day-Ahead Market data from: ${nyisoUrl}`);
       
       const response = await fetch(nyisoUrl);
       
@@ -103,7 +103,7 @@ serve(async (req) => {
         throw new Error('No N.Y.C. (Zone J) data found in NYISO CSV');
       }
       
-      console.log(`Fetched ${prices.length} real NYISO price points for Zone J`);
+      console.log(`Fetched ${prices.length} Day-Ahead Market price points for Zone J`);
       
       // Deduplicate by timestamp - keep the latest value for each unique timestamp
       const priceMap = new Map<string, PriceData>();
