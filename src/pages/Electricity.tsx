@@ -73,16 +73,34 @@ export default function Electricity({ onBack }: ElectricityProps) {
       hourlyData[hour].timestamps.push(timestamp);
     });
     
-    return Object.entries(hourlyData).map(([hour, data]) => ({
-      hour: parseInt(hour),
-      avgPrice: data.sum / data.count,
-      count: data.count
-    })).sort((a, b) => a.hour - b.hour);
+    // Create entries for all 24 hours
+    const result = [];
+    for (let hour = 0; hour < 24; hour++) {
+      if (hourlyData[hour]) {
+        result.push({
+          hour,
+          avgPrice: hourlyData[hour].sum / hourlyData[hour].count,
+          count: hourlyData[hour].count
+        });
+      } else {
+        // For missing hours, use null to maintain chart continuity
+        result.push({
+          hour,
+          avgPrice: null,
+          count: 0
+        });
+      }
+    }
+    
+    return result;
   };
 
-  const getPriceLabel = (price: number, allPrices: number[]) => {
-    if (!allPrices || allPrices.length === 0) return 'okay';
-    const sorted = [...allPrices].sort((a, b) => a - b);
+  const getPriceLabel = (price: number | null, allPrices: (number | null)[]) => {
+    if (price === null || !allPrices || allPrices.length === 0) return 'okay';
+    const validPrices = allPrices.filter((p): p is number => p !== null);
+    if (validPrices.length === 0) return 'okay';
+    
+    const sorted = [...validPrices].sort((a, b) => a - b);
     const p25 = sorted[Math.floor(sorted.length * 0.25)];
     const p50 = sorted[Math.floor(sorted.length * 0.50)];
     const p75 = sorted[Math.floor(sorted.length * 0.75)];
@@ -104,13 +122,16 @@ export default function Electricity({ onBack }: ElectricityProps) {
   const calculateStats = (hourlyData: any[]) => {
     if (!hourlyData || hourlyData.length === 0) return null;
     
-    const prices = hourlyData.map(d => d.avgPrice);
+    const validData = hourlyData.filter(d => d.avgPrice !== null);
+    if (validData.length === 0) return null;
+    
+    const prices = validData.map(d => d.avgPrice);
     const minPrice = Math.min(...prices);
     const maxPrice = Math.max(...prices);
     const avgPrice = prices.reduce((sum, p) => sum + p, 0) / prices.length;
     
-    const cheapestHour = hourlyData.find(d => d.avgPrice === minPrice);
-    const peakHour = hourlyData.find(d => d.avgPrice === maxPrice);
+    const cheapestHour = validData.find(d => d.avgPrice === minPrice);
+    const peakHour = validData.find(d => d.avgPrice === maxPrice);
     
     return {
       minPrice,
