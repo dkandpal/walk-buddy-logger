@@ -34,6 +34,32 @@ serve(async (req) => {
     const endOfDay = new Date(now);
     endOfDay.setHours(23, 59, 59, 999);
 
+    // Check for day-ahead prices first
+    let dataSource = 'day-ahead';
+    const { data: dayAheadPrices, error: dayAheadError } = await supabase
+      .from('electricity_prices')
+      .select('*')
+      .eq('zone', zone)
+      .eq('source', 'day-ahead')
+      .gte('timestamp', startOfDay.toISOString())
+      .lte('timestamp', endOfDay.toISOString())
+      .order('timestamp');
+
+    // If no day-ahead data, fetch it
+    if (!dayAheadPrices || dayAheadPrices.length === 0) {
+      console.log('No day-ahead data found, fetching...');
+      try {
+        const { error: fetchError } = await supabase.functions.invoke('fetch-electricity-prices');
+        if (fetchError) {
+          console.error('Error invoking fetch function:', fetchError);
+        } else {
+          console.log('Successfully triggered price fetch');
+        }
+      } catch (fetchErr) {
+        console.error('Failed to trigger price fetch:', fetchErr);
+      }
+    }
+
     // Fetch windows for today (full 24 hours)
     const { data: windows, error: windowError } = await supabase
       .from('electricity_windows')
@@ -121,19 +147,42 @@ serve(async (req) => {
       duration: bestWindow.duration_minutes
     } : null;
 
-    // Get hourly breakdown for timeline (full 24 hours)
-    const { data: prices, error: priceError } = await supabase
+    // Get hourly breakdown for timeline - prefer day-ahead, fall back to real-time
+    let { data: prices, error: priceError } = await supabase
       .from('electricity_prices')
       .select('*')
       .eq('zone', zone)
+      .eq('source', 'day-ahead')
       .gte('timestamp', startOfDay.toISOString())
       .lte('timestamp', endOfDay.toISOString())
       .order('timestamp');
+
+    // Fall back to real-time if day-ahead not available
+    if (!prices || prices.length === 0) {
+      console.log('No day-ahead prices, falling back to real-time');
+      dataSource = 'real-time';
+      const { data: realtimePrices, error: realtimeError } = await supabase
+        .from('electricity_prices')
+        .select('*')
+        .eq('zone', zone)
+        .eq('source', 'real-time')
+        .gte('timestamp', startOfDay.toISOString())
+        .lte('timestamp', endOfDay.toISOString())
+        .order('timestamp');
+      
+      if (realtimeError) {
+        console.error('Error fetching real-time prices:', realtimeError);
+        throw realtimeError;
+      }
+      prices = realtimePrices;
+    }
 
     if (priceError) {
       console.error('Error fetching prices:', priceError);
       throw priceError;
     }
+
+    console.log(`Returning ${prices?.length || 0} price points with source: ${dataSource}`);
 
     return new Response(
       JSON.stringify({
@@ -141,7 +190,8 @@ serve(async (req) => {
         windows: windows || [],
         prices: prices || [],
         appliance,
-        requiredDuration
+        requiredDuration,
+        dataSource
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

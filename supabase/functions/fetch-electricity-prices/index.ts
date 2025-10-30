@@ -134,14 +134,16 @@ serve(async (req) => {
       source: dataSource
     }));
 
-    const { error: insertError } = await supabase
+    const { error: insertError, count } = await supabase
       .from('electricity_prices')
-      .upsert(priceInserts, { onConflict: 'timestamp,zone,source' });
+      .upsert(priceInserts, { onConflict: 'timestamp,zone,source', count: 'exact' });
 
     if (insertError) {
       console.error('Error inserting prices:', insertError);
       throw insertError;
     }
+
+    console.log(`Inserted ${priceInserts.length} day-ahead price records (${count || 0} new rows)`);
 
     // Calculate percentile bands based on last 30 days
     const thirtyDaysAgo = new Date();

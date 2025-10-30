@@ -272,9 +272,16 @@ export default function Electricity({ onBack }: ElectricityProps) {
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
                           <span>24-Hour Price Overview</span>
-                          <Badge variant="outline" className="font-normal">
-                            {isWeekend ? '🏖️ Weekend Pattern' : '💼 Weekday Pattern'}
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            {recommendations?.dataSource === 'day-ahead' && (
+                              <Badge variant="default" className="font-normal bg-green-600 hover:bg-green-700">
+                                📊 Day-Ahead Auction
+                              </Badge>
+                            )}
+                            <Badge variant="outline" className="font-normal">
+                              {isWeekend ? '🏖️ Weekend Pattern' : '💼 Weekday Pattern'}
+                            </Badge>
+                          </div>
                         </CardTitle>
                       </CardHeader>
                       <CardContent>
