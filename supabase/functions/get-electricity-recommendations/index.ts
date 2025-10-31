@@ -184,6 +184,21 @@ serve(async (req) => {
 
     console.log(`Returning ${prices?.length || 0} price points with source: ${dataSource}`);
 
+    // Find cheapest hour during waking hours (8am-11pm)
+    let cheapestWakingHour = null;
+    if (prices && prices.length > 0) {
+      const wakingHoursPrices = prices.filter(p => {
+        const hour = new Date(p.timestamp).getHours();
+        return hour >= 8 && hour <= 23;
+      });
+      
+      if (wakingHoursPrices.length > 0) {
+        cheapestWakingHour = wakingHoursPrices.reduce((min, p) => 
+          Number(p.lmp_usd_mwh) < Number(min.lmp_usd_mwh) ? p : min
+        );
+      }
+    }
+
     return new Response(
       JSON.stringify({
         recommendation,
@@ -191,7 +206,14 @@ serve(async (req) => {
         prices: prices || [],
         appliance,
         requiredDuration,
-        dataSource
+        dataSource,
+        cheapestWakingHour: cheapestWakingHour ? {
+          hour: new Date(cheapestWakingHour.timestamp).toLocaleTimeString('en-US', { 
+            hour: 'numeric',
+            hour12: true 
+          }),
+          price: Number(cheapestWakingHour.lmp_usd_mwh)
+        } : null
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

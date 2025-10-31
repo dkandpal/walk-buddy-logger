@@ -435,11 +435,16 @@ const Index = () => {
                     className="h-[210px] flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer bg-gradient-to-br from-green-500/10 to-blue-500/10"
                   >
                     <Zap className="h-10 w-10 text-green-500 mb-2" />
-                    <h2 className="text-lg font-bold text-foreground">Electricity Price Tracker</h2>
-                    {electricityRecs?.recommendation ? (
-                      <p className="text-sm text-foreground mt-2 font-semibold">
-                        Best Window: {electricityRecs.recommendation.startTime}-{electricityRecs.recommendation.endTime.replace(/\s?(AM|PM)/, '')} (${electricityRecs.recommendation.avgPrice?.toFixed(2)}/MWh)
-                      </p>
+                    <h2 className="text-lg font-bold text-foreground">Cheapest Hour</h2>
+                    {electricityRecs?.cheapestWakingHour ? (
+                      <>
+                        <p className="text-2xl text-foreground mt-2 font-bold">
+                          {electricityRecs.cheapestWakingHour.hour}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          ${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh
+                        </p>
+                      </>
                     ) : (
                       <p className="text-xs text-muted-foreground mt-1">Loading...</p>
                     )}
