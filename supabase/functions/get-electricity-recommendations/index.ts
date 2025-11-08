@@ -28,11 +28,34 @@ serve(async (req) => {
 
     console.log(`Getting recommendations for ${appliance} (${requiredDuration} min) in zone ${zone}`);
 
+    // Get current time
     const now = new Date();
-    const startOfDay = new Date(now);
-    startOfDay.setHours(0, 0, 0, 0);
-    const endOfDay = new Date(now);
-    endOfDay.setHours(23, 59, 59, 999);
+
+    // Calculate ET offset (EST = UTC-5, EDT = UTC-4)
+    // Determine if we're in DST by checking the timezone offset
+    const jan = new Date(now.getFullYear(), 0, 1);
+    const jul = new Date(now.getFullYear(), 6, 1);
+    const stdOffset = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+    const isDST = now.getTimezoneOffset() < stdOffset;
+    const etOffset = isDST ? 4 : 5; // 4 hours for EDT, 5 for EST
+
+    // Get current time in ET by subtracting offset
+    const nowET = new Date(now.getTime() - (etOffset * 60 * 60 * 1000));
+
+    // Get midnight ET today
+    const startOfDayET = new Date(nowET);
+    startOfDayET.setHours(0, 0, 0, 0);
+
+    // Get midnight ET tomorrow
+    const endOfDayET = new Date(startOfDayET);
+    endOfDayET.setDate(endOfDayET.getDate() + 1);
+
+    // Convert back to UTC for database query
+    const startOfDay = new Date(startOfDayET.getTime() + (etOffset * 60 * 60 * 1000));
+    const endOfDay = new Date(endOfDayET.getTime() + (etOffset * 60 * 60 * 1000));
+
+    console.log(`Querying for ET date: ${startOfDayET.toISOString().split('T')[0]}`);
+    console.log(`UTC range: ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
 
     // Check for day-ahead prices first
     let dataSource = 'day-ahead';
@@ -42,7 +65,7 @@ serve(async (req) => {
       .eq('zone', zone)
       .eq('source', 'day-ahead')
       .gte('timestamp', startOfDay.toISOString())
-      .lte('timestamp', endOfDay.toISOString())
+      .lt('timestamp', endOfDay.toISOString())
       .order('timestamp');
 
     // If no day-ahead data, fetch it
@@ -154,7 +177,7 @@ serve(async (req) => {
       .eq('zone', zone)
       .eq('source', 'day-ahead')
       .gte('timestamp', startOfDay.toISOString())
-      .lte('timestamp', endOfDay.toISOString())
+      .lt('timestamp', endOfDay.toISOString())
       .order('timestamp');
 
     // Fall back to real-time if day-ahead not available
@@ -167,7 +190,7 @@ serve(async (req) => {
         .eq('zone', zone)
         .eq('source', 'real-time')
         .gte('timestamp', startOfDay.toISOString())
-        .lte('timestamp', endOfDay.toISOString())
+        .lt('timestamp', endOfDay.toISOString())
         .order('timestamp');
       
       if (realtimeError) {
