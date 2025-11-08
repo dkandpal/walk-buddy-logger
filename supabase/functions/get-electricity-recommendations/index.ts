@@ -207,11 +207,14 @@ serve(async (req) => {
 
     console.log(`Returning ${prices?.length || 0} price points with source: ${dataSource}`);
 
-    // Find cheapest hour during waking hours (8am-11pm)
+    // Find cheapest hour during waking hours (8am-11pm) in ET
     let cheapestWakingHour = null;
     if (prices && prices.length > 0) {
       const wakingHoursPrices = prices.filter(p => {
-        const hour = new Date(p.timestamp).getHours();
+        const utcTime = new Date(p.timestamp);
+        // Convert UTC to ET by subtracting offset
+        const etTime = new Date(utcTime.getTime() - (etOffset * 60 * 60 * 1000));
+        const hour = etTime.getHours();
         return hour >= 8 && hour <= 23;
       });
       
@@ -231,9 +234,10 @@ serve(async (req) => {
         requiredDuration,
         dataSource,
         cheapestWakingHour: cheapestWakingHour ? {
-          hour: new Date(cheapestWakingHour.timestamp).toLocaleTimeString('en-US', { 
+          hour: new Date(new Date(cheapestWakingHour.timestamp).getTime() - (etOffset * 60 * 60 * 1000)).toLocaleTimeString('en-US', { 
             hour: 'numeric',
-            hour12: true 
+            hour12: true,
+            timeZone: 'America/New_York'
           }),
           price: Number(cheapestWakingHour.lmp_usd_mwh)
         } : null

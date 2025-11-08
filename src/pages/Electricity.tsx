@@ -54,15 +54,25 @@ export default function Electricity({ onBack }: ElectricityProps) {
     retry: false,
   });
 
-  // Aggregate 5-minute data into hourly averages
+  // Aggregate 5-minute data into hourly averages in Eastern Time
   const aggregateToHourly = (prices: any[]) => {
     if (!prices || prices.length === 0) return [];
     
     const hourlyData: { [hour: number]: { sum: number; count: number; timestamps: Date[] } } = {};
     
+    // Calculate ET offset (EST = UTC-5, EDT = UTC-4)
+    const now = new Date();
+    const jan = new Date(now.getFullYear(), 0, 1);
+    const jul = new Date(now.getFullYear(), 6, 1);
+    const stdOffset = Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset());
+    const isDST = now.getTimezoneOffset() < stdOffset;
+    const etOffset = isDST ? 4 : 5; // 4 hours for EDT, 5 for EST
+    
     prices.forEach((price: any) => {
-      const timestamp = new Date(price.timestamp);
-      const hour = timestamp.getHours();
+      const utcTimestamp = new Date(price.timestamp);
+      // Convert UTC to ET by subtracting offset
+      const etTimestamp = new Date(utcTimestamp.getTime() - (etOffset * 60 * 60 * 1000));
+      const hour = etTimestamp.getHours();
       
       if (!hourlyData[hour]) {
         hourlyData[hour] = { sum: 0, count: 0, timestamps: [] };
@@ -70,7 +80,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
       
       hourlyData[hour].sum += Number(price.lmp_usd_mwh);
       hourlyData[hour].count += 1;
-      hourlyData[hour].timestamps.push(timestamp);
+      hourlyData[hour].timestamps.push(etTimestamp);
     });
     
     // Create entries for all 24 hours
