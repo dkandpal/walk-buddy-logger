@@ -413,13 +413,19 @@ const Index = () => {
                 {/* Right Column: Music + Electricity */}
                 <div className="flex flex-col h-full border-l-2 border-border">
                   {/* Music - Top - Clickable */}
-                  <button onClick={() => api?.scrollTo(2)} className="h-1/2 flex items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer">
+                  <button onClick={() => api?.scrollTo(2)} className="h-1/2 flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer gap-3">
                     {nowPlaying?.playing && nowPlaying.image ? (
-                      <img 
-                        src={nowPlaying.image} 
-                        alt="Album Art" 
-                        className="h-full w-auto object-contain max-h-[90%]" 
-                      />
+                      <>
+                        <img 
+                          src={nowPlaying.image} 
+                          alt="Album Art" 
+                          className="flex-1 w-auto object-contain max-h-[65%]" 
+                        />
+                        <div className="space-y-1 text-center px-2">
+                          <p className="text-xl font-bold text-foreground line-clamp-1">{nowPlaying.title}</p>
+                          <p className="text-base text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
+                        </div>
+                      </>
                     ) : (
                       <div className="flex flex-col items-center justify-center">
                         <h2 className="text-3xl font-bold text-foreground mb-4">Now Playing</h2>
