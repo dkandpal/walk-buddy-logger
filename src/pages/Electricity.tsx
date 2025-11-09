@@ -174,7 +174,7 @@ export default function Electricity({ onBack }: ElectricityProps) {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto p-8">
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="w-full px-8 space-y-6">
           {/* Hero Section */}
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-3">

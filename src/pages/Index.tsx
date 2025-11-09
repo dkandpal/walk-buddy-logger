@@ -347,15 +347,15 @@ const Index = () => {
   return <>
       <Carousel setApi={setApi} className="h-screen overflow-hidden">
         <CarouselContent>
-          {/* Slide 0: Home Screen - Optimized for 800x480 */}
+          {/* Slide 0: Home Screen - Full Screen */}
           <CarouselItem className="h-screen">
-            <div className="h-[480px] w-[800px] mx-auto bg-background flex flex-col">
+            <div className="h-screen w-screen bg-background flex flex-col">
               {/* Header */}
-              <div className="h-[60px] flex items-center justify-between px-8 border-b-2 border-border bg-card">
-                <div className="text-2xl font-bold text-foreground tabular-nums">
+              <div className="h-20 flex items-center justify-between px-8 border-b-2 border-border bg-card">
+                <div className="text-4xl font-bold text-foreground tabular-nums">
                   {formatCurrentTime()}
                 </div>
-                <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
+                <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
                   ORION HOME
                 </h1>
                 <div className="w-32"></div> {/* Spacer for centering */}
@@ -374,14 +374,14 @@ const Index = () => {
                 {/* Middle Column: Weather + Dog Timer */}
                 <div className="flex flex-col h-full border-l-2 border-border">
                   {/* Weather - Top - Clickable */}
-                  <button onClick={() => api?.scrollTo(3)} className="h-[210px] bg-card flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      {getWeatherIcon(weather?.weatherCode || null, 10)}
+                  <button onClick={() => api?.scrollTo(3)} className="h-1/2 bg-card flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer">
+                    <div className="flex items-center gap-4">
+                      {getWeatherIcon(weather?.weatherCode || null, 16)}
                       <div>
-                        <div className="text-3xl font-black text-foreground">
+                        <div className="text-6xl font-black text-foreground">
                           {weather?.temperature ? `${weather.temperature}°F` : '--°'}
                         </div>
-                        <div className="text-xs text-muted-foreground font-semibold">
+                        <div className="text-base text-muted-foreground font-semibold">
                           Fort Greene, NY
                         </div>
                       </div>
@@ -389,12 +389,12 @@ const Index = () => {
                   </button>
 
                   {/* Dog Timer - Bottom - Clickable */}
-                  <button onClick={() => api?.scrollTo(1)} className="h-[210px] flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer">
-                    <h2 className="text-xl font-bold text-foreground mb-2">Dog Walk</h2>
-                    <div className="text-4xl font-black text-foreground tabular-nums tracking-tight">
+                  <button onClick={() => api?.scrollTo(1)} className="h-1/2 flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer">
+                    <h2 className="text-3xl font-bold text-foreground mb-4">Dog Walk</h2>
+                    <div className="text-7xl font-black text-foreground tabular-nums tracking-tight">
                       {formatTimeHoursMinutes(timeRemaining)}
                     </div>
-                    {isOverdue && <div className="mt-2 text-destructive text-xs font-bold animate-pulse">
+                    {isOverdue && <div className="mt-4 text-destructive text-lg font-bold animate-pulse">
                         🚨 NEEDS WALK
                       </div>}
                   </button>
@@ -403,26 +403,26 @@ const Index = () => {
                 {/* Right Column: Music + Electricity */}
                 <div className="flex flex-col h-full border-l-2 border-border">
                   {/* Music - Top - Clickable */}
-                  <button onClick={() => api?.scrollTo(2)} className="h-[210px] flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer">
-                    <h2 className="text-xl font-bold text-foreground mb-2">Now Playing</h2>
-                    {nowPlaying?.playing ? <div className="space-y-1 text-center px-2">
-                        <p className="text-lg font-bold text-foreground line-clamp-2">{nowPlaying.title}</p>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
-                      </div> : <p className="text-base font-semibold text-muted-foreground">Not Playing</p>}
+                  <button onClick={() => api?.scrollTo(2)} className="h-1/2 flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer">
+                    <h2 className="text-3xl font-bold text-foreground mb-4">Now Playing</h2>
+                    {nowPlaying?.playing ? <div className="space-y-2 text-center px-2">
+                        <p className="text-2xl font-bold text-foreground line-clamp-2">{nowPlaying.title}</p>
+                        <p className="text-lg text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
+                      </div> : <p className="text-xl font-semibold text-muted-foreground">Not Playing</p>}
                   </button>
 
                   {/* Electricity - Bottom - Clickable */}
-                  <button onClick={() => api?.scrollTo(4)} className="h-[210px] flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer bg-gradient-to-br from-green-500/10 to-blue-500/10">
-                    <Zap className="h-10 w-10 text-green-500 mb-2" />
-                    <h2 className="text-lg font-bold text-foreground">Greenest Hour</h2>
+                  <button onClick={() => api?.scrollTo(4)} className="h-1/2 flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer bg-gradient-to-br from-green-500/10 to-blue-500/10">
+                    <Zap className="h-16 w-16 text-green-500 mb-3" />
+                    <h2 className="text-2xl font-bold text-foreground">Greenest Hour</h2>
                     {electricityRecs?.cheapestWakingHour ? <>
-                        <p className="text-2xl text-foreground mt-2 font-bold">
+                        <p className="text-4xl text-foreground mt-3 font-bold">
                           {electricityRecs.cheapestWakingHour.hour}
                         </p>
-                        <p className="text-sm text-muted-foreground">
+                        <p className="text-lg text-muted-foreground">
                           ${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh
                         </p>
-                      </> : <p className="text-xs text-muted-foreground mt-1">Loading...</p>}
+                      </> : <p className="text-base text-muted-foreground mt-2">Loading...</p>}
                   </button>
                 </div>
               </div>
@@ -433,8 +433,8 @@ const Index = () => {
           <CarouselItem className="h-screen">
             <div className="h-screen bg-background flex overflow-hidden relative">
               {/* Back to Home Button */}
-              <Button onClick={() => api?.scrollTo(0)} variant="outline" size="sm" className="absolute top-4 left-4 z-10">
-                <ArrowLeft className="w-4 h-4 mr-2" />
+              <Button onClick={() => api?.scrollTo(0)} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
+                <ArrowLeft className="w-6 h-6 mr-2" />
                 Home
               </Button>
 
@@ -444,56 +444,56 @@ const Index = () => {
               </div>
 
               {/* Right side - Main content */}
-              <div className="w-1/2 flex flex-col items-center justify-center p-3 overflow-y-auto">
-                <div className="w-full space-y-3 text-center">
+              <div className="w-1/2 flex flex-col items-center justify-center p-8 overflow-y-auto">
+                <div className="w-full space-y-6 text-center">
                   {/* Header */}
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-center gap-2">
-                      <Dog className="w-6 h-6 text-primary" />
-                      <h1 className="text-2xl font-extrabold text-foreground tracking-tight">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center gap-3">
+                      <Dog className="w-12 h-12 text-primary" />
+                      <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
                         Dog Walk Tracker
                       </h1>
                     </div>
                     
                     {/* Last walk info */}
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xl text-muted-foreground">
                       <span className="font-semibold">Last walk:</span>{" "}
                       {formatLastWalk(lastWalkTime)}
                     </p>
                   </div>
 
                   {/* Overdue alert */}
-                  {isOverdue && <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-2xl p-4 shadow-lg animate-pulse">
-                      <AlertCircle className="w-8 h-8 mx-auto mb-2" />
-                      <h2 className="text-xl font-extrabold">
+                  {isOverdue && <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-2xl p-6 shadow-lg animate-pulse">
+                      <AlertCircle className="w-12 h-12 mx-auto mb-3" />
+                      <h2 className="text-3xl font-extrabold">
                         DOG NEEDS A WALK! &lt;3
                       </h2>
                     </div>}
 
                   {/* Quiet hours message */}
-                  {isQuietHours && <div className="bg-accent/10 border-2 border-accent rounded-2xl p-3">
-                      <p className="text-sm font-bold text-accent-foreground">
+                  {isQuietHours && <div className="bg-accent/10 border-2 border-accent rounded-2xl p-5">
+                      <p className="text-lg font-bold text-accent-foreground">
                         🌙 Quiet hours — timer paused
                       </p>
                     </div>}
 
                   {/* Timer display */}
-                  <div className="bg-card border-2 border-border rounded-2xl p-6 shadow-[var(--shadow-soft)]">
-                    <div className="text-5xl font-black text-foreground tabular-nums tracking-tight">
+                  <div className="bg-card border-2 border-border rounded-2xl p-10 shadow-[var(--shadow-soft)]">
+                    <div className="text-8xl font-black text-foreground tabular-nums tracking-tight">
                       {formatTime(timeRemaining)}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2 font-semibold">
+                    <p className="text-xl text-muted-foreground mt-4 font-semibold">
                       until next walk
                     </p>
                   </div>
 
                   {/* Walked button */}
-                  <Button onClick={() => setIsDialogOpen(true)} size="lg" className="w-full h-16 text-2xl font-extrabold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200">
+                  <Button onClick={() => setIsDialogOpen(true)} size="lg" className="w-full h-20 text-3xl font-extrabold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200">
                     WALKED
                   </Button>
 
                   {/* Dev button */}
-                  <Button onClick={setTimerToFiveSeconds} variant="outline" size="sm" className="text-xs">
+                  <Button onClick={setTimerToFiveSeconds} variant="outline" size="sm" className="text-base py-4">
                     Dev: Set timer to 5 seconds
                   </Button>
                 </div>
@@ -504,20 +504,20 @@ const Index = () => {
           {/* Slide 2: Now Playing */}
           <CarouselItem className="flex items-center justify-center h-screen bg-background relative">
             {/* Back to Home Button */}
-            <Button onClick={() => api?.scrollTo(0)} variant="outline" size="sm" className="absolute top-4 left-4 z-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button onClick={() => api?.scrollTo(0)} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
+              <ArrowLeft className="w-6 h-6 mr-2" />
               Home
             </Button>
 
-            <div className="flex flex-col items-center justify-center text-center gap-6 px-4">
+            <div className="flex flex-col items-center justify-center text-center gap-8 px-8">
               {!nowPlaying?.connected ? <>
-                  <div className="w-64 h-64 flex items-center justify-center rounded-2xl bg-muted/20">
-                    <span className="text-6xl">🎵</span>
+                  <div className="w-96 h-96 flex items-center justify-center rounded-2xl bg-muted/20">
+                    <span className="text-9xl">🎵</span>
                   </div>
-                  <h2 className="text-3xl font-extrabold text-foreground">
+                  <h2 className="text-5xl font-extrabold text-foreground">
                     Connect Spotify
                   </h2>
-                  <p className="text-lg text-muted-foreground max-w-md">
+                  <p className="text-2xl text-muted-foreground max-w-2xl">
                     Sign in to Spotify to display what you're currently listening to on the kiosk
                   </p>
                   <Button onClick={async () => {
@@ -541,20 +541,20 @@ const Index = () => {
                   console.error('Failed to start Spotify auth:', error);
                   toast.error('Failed to connect to Spotify');
                 }
-              }} size="lg" className="w-64 h-14 text-xl font-bold rounded-2xl bg-[#1DB954] hover:bg-[#1ed760] text-white">
+              }} size="lg" className="w-80 h-20 text-2xl font-bold rounded-2xl bg-[#1DB954] hover:bg-[#1ed760] text-white">
                     Connect Spotify
                   </Button>
                 </> : <>
-                  {nowPlaying?.image ? <img src={nowPlaying.image} alt="Album Art" className="w-[280px] h-[280px] rounded-2xl shadow-xl object-cover" /> : <div className="w-64 h-64 flex items-center justify-center rounded-2xl bg-muted/20">
-                      <span className="text-6xl">🎵</span>
+                  {nowPlaying?.image ? <img src={nowPlaying.image} alt="Album Art" className="w-[500px] h-[500px] rounded-2xl shadow-xl object-cover" /> : <div className="w-96 h-96 flex items-center justify-center rounded-2xl bg-muted/20">
+                      <span className="text-9xl">🎵</span>
                     </div>}
-                  <h2 className="text-3xl font-extrabold text-foreground">
+                  <h2 className="text-5xl font-extrabold text-foreground">
                     {nowPlaying?.title || "Not Playing"}
                   </h2>
-                  <p className="text-xl text-muted-foreground">
+                  <p className="text-3xl text-muted-foreground">
                     {nowPlaying?.artist || "—"}
                   </p>
-                  <p className="text-sm text-muted-foreground/60">
+                  <p className="text-xl text-muted-foreground/60">
                     {nowPlaying?.playing ? "Now Playing" : "Paused / Not Playing"}
                   </p>
                 </>}
@@ -564,37 +564,37 @@ const Index = () => {
           {/* Slide 3: Detailed Weather */}
           <CarouselItem className="h-screen bg-background relative">
             {/* Back to Home Button */}
-            <Button onClick={() => api?.scrollTo(0)} variant="outline" size="sm" className="absolute top-4 left-4 z-10">
-              <ArrowLeft className="w-4 h-4 mr-2" />
+            <Button onClick={() => api?.scrollTo(0)} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
+              <ArrowLeft className="w-6 h-6 mr-2" />
               Home
             </Button>
 
-            <div className="h-screen overflow-y-auto p-8 pt-16">
-              <div className="max-w-4xl mx-auto space-y-6">
+            <div className="h-screen overflow-y-auto p-12 pt-20">
+              <div className="w-full px-8 space-y-8">
                 {/* Header */}
-                <div className="text-center space-y-2">
-                  <h1 className="text-4xl font-extrabold text-foreground">Weather Details</h1>
-                  <p className="text-lg text-muted-foreground">Fort Greene, NY</p>
+                <div className="text-center space-y-3">
+                  <h1 className="text-6xl font-extrabold text-foreground">Weather Details</h1>
+                  <p className="text-2xl text-muted-foreground">Fort Greene, NY</p>
                 </div>
 
                 {/* Current Conditions */}
-                <div className="bg-card border-2 border-border rounded-2xl p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-4">Current Conditions</h2>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex items-center gap-3">
-                      {getWeatherIcon(weather?.weatherCode || null, 10)}
+                <div className="bg-card border-2 border-border rounded-2xl p-10">
+                  <h2 className="text-4xl font-bold text-foreground mb-6">Current Conditions</h2>
+                  <div className="grid grid-cols-2 gap-8">
+                    <div className="flex items-center gap-6">
+                      {getWeatherIcon(weather?.weatherCode || null, 20)}
                       <div>
-                        <div className="text-3xl font-black text-foreground">
+                        <div className="text-7xl font-black text-foreground">
                           {weather?.temperature ? `${weather.temperature}°F` : '--°'}
                         </div>
-                        <div className="text-sm text-muted-foreground">
+                        <div className="text-2xl text-muted-foreground mt-2">
                           {getWeatherDescription(weather?.weatherCode || null)}
                         </div>
                       </div>
                     </div>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Feels Like</div>
-                      <div className="text-2xl font-bold text-foreground">
+                    <div className="flex flex-col justify-center">
+                      <div className="text-xl text-muted-foreground">Feels Like</div>
+                      <div className="text-5xl font-bold text-foreground mt-2">
                         {detailedWeather?.current_apparent ? `${Math.round(detailedWeather.current_apparent)}°F` : '--°'}
                       </div>
                     </div>
@@ -602,21 +602,21 @@ const Index = () => {
                 </div>
 
                 {/* Hourly Forecast (Next 12 hours) */}
-                <div className="bg-card border-2 border-border rounded-2xl p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-4">Hourly Forecast</h2>
-                  <div className="grid grid-cols-6 gap-4">
+                <div className="bg-card border-2 border-border rounded-2xl p-8">
+                  <h2 className="text-4xl font-bold text-foreground mb-6">Hourly Forecast</h2>
+                  <div className="grid grid-cols-6 gap-6">
                     {detailedWeather?.hourly?.time.slice(0, 12).map((time: string, idx: number) => {
                     const hour = new Date(time).getHours();
                     const temp = detailedWeather.hourly.temperature_2m[idx];
                     const code = detailedWeather.hourly.weather_code[idx];
-                    return <div key={time} className="text-center space-y-2">
-                          <div className="text-sm font-semibold text-muted-foreground">
+                    return <div key={time} className="text-center space-y-3 p-4 rounded-lg bg-background">
+                          <div className="text-lg font-semibold text-muted-foreground">
                             {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
                           </div>
                           <div className="flex justify-center">
-                            {getWeatherIcon(code, 8)}
+                            {getWeatherIcon(code, 12)}
                           </div>
-                          <div className="text-lg font-bold text-foreground">
+                          <div className="text-3xl font-bold text-foreground">
                             {Math.round(temp)}°
                           </div>
                         </div>;
@@ -625,26 +625,26 @@ const Index = () => {
                 </div>
 
                 {/* 5-Day Forecast */}
-                <div className="bg-card border-2 border-border rounded-2xl p-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-4">5-Day Forecast</h2>
-                  <div className="space-y-3">
+                <div className="bg-card border-2 border-border rounded-2xl p-8">
+                  <h2 className="text-4xl font-bold text-foreground mb-6">5-Day Forecast</h2>
+                  <div className="space-y-4">
                     {detailedWeather?.daily?.time.map((date: string, idx: number) => {
                     const maxTemp = detailedWeather.daily.temperature_2m_max[idx];
                     const minTemp = detailedWeather.daily.temperature_2m_min[idx];
                     const code = detailedWeather.daily.weather_code[idx];
-                    return <div key={date} className="flex items-center justify-between p-3 bg-background rounded-lg">
-                          <div className="flex items-center gap-4 flex-1">
-                            <div className="w-20 font-semibold text-foreground">
+                    return <div key={date} className="flex items-center justify-between p-6 bg-background rounded-lg">
+                          <div className="flex items-center gap-8 flex-1">
+                            <div className="w-32 text-2xl font-semibold text-foreground">
                               {idx === 0 ? 'Today' : formatDay(date)}
                             </div>
-                            <div className="flex items-center gap-2">
-                              {getWeatherIcon(code, 6)}
-                              <span className="text-sm text-muted-foreground">
+                            <div className="flex items-center gap-4">
+                              {getWeatherIcon(code, 10)}
+                              <span className="text-xl text-muted-foreground">
                                 {getWeatherDescription(code)}
                               </span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-6 text-2xl">
                             <span className="text-muted-foreground">L: {Math.round(minTemp)}°</span>
                             <span className="font-bold text-foreground">H: {Math.round(maxTemp)}°</span>
                           </div>
