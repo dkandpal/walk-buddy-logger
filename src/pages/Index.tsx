@@ -352,10 +352,10 @@ const Index = () => {
             <div className="h-screen w-screen bg-background flex flex-col">
               {/* Header */}
               <div className="h-20 flex items-center justify-between px-8 border-b-2 border-border bg-card">
-                <div className="text-6xl font-bold text-foreground tabular-nums">
+                <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tabular-nums">
                   {formatCurrentTime()}
                 </div>
-                <h1 className="text-7xl font-extrabold text-foreground tracking-tight">
+                <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-foreground tracking-tight">
                   ORION HOME
                 </h1>
                 <div className="w-32"></div> {/* Spacer for centering */}
@@ -375,18 +375,18 @@ const Index = () => {
                 <div className="flex flex-col h-full border-l-2 border-border">
                   {/* Weather - Top - Clickable */}
                   <button onClick={() => api?.scrollTo(3)} className="h-1/2 bg-card flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-4">
-                      {getWeatherIcon(weather?.weatherCode || null, 20)}
+                    <div className="flex items-center gap-3">
+                      {getWeatherIcon(weather?.weatherCode || null, 16)}
                       <div>
-                        <div className="text-8xl font-black text-foreground">
+                        <div className="text-5xl md:text-6xl lg:text-8xl font-black text-foreground">
                           {weather?.temperature ? `${weather.temperature}°F` : '--°'}
                         </div>
                         {detailedWeather?.current_apparent && (
-                          <div className="text-3xl text-muted-foreground font-semibold">
+                          <div className="text-xl md:text-2xl lg:text-3xl text-muted-foreground font-semibold">
                             Feels like {Math.round(detailedWeather.current_apparent)}°F
                           </div>
                         )}
-                        <div className="text-xl text-muted-foreground font-semibold">
+                        <div className="text-base md:text-lg lg:text-xl text-muted-foreground font-semibold">
                           Fort Greene, NY
                         </div>
                       </div>
@@ -395,16 +395,16 @@ const Index = () => {
 
                   {/* Dog Timer - Bottom - Clickable */}
                   <button onClick={() => api?.scrollTo(1)} className="h-1/2 flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer">
-                    <h2 className="text-5xl font-bold text-foreground mb-4">Dog Walk</h2>
-                    <div className="text-9xl font-black text-foreground tabular-nums tracking-tight">
+                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 md:mb-4">Dog Walk</h2>
+                    <div className="text-6xl md:text-7xl lg:text-9xl font-black text-foreground tabular-nums tracking-tight">
                       {formatTimeHoursMinutes(timeRemaining)}
                     </div>
                     {lastWalkTime && (
-                      <div className="text-2xl text-muted-foreground mt-2">
+                      <div className="text-lg md:text-xl lg:text-2xl text-muted-foreground mt-1 md:mt-2">
                         Last walk: {formatLastWalk(lastWalkTime)}
                       </div>
                     )}
-                    {isOverdue && <div className="mt-4 text-destructive text-3xl font-bold animate-pulse">
+                    {isOverdue && <div className="mt-2 md:mt-4 text-destructive text-xl md:text-2xl lg:text-3xl font-bold animate-pulse">
                         🚨 NEEDS WALK
                       </div>}
                   </button>
@@ -413,7 +413,7 @@ const Index = () => {
                 {/* Right Column: Music + Electricity */}
                 <div className="flex flex-col h-full border-l-2 border-border">
                   {/* Music - Top - Clickable */}
-                  <button onClick={() => api?.scrollTo(2)} className="h-1/2 flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer gap-3">
+                  <button onClick={() => api?.scrollTo(2)} className="h-1/2 flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer gap-2 md:gap-3">
                     {nowPlaying?.playing && nowPlaying.image ? (
                       <>
                         <img 
@@ -422,30 +422,30 @@ const Index = () => {
                           className="flex-1 w-auto object-contain max-h-[65%]" 
                         />
                         <div className="space-y-1 text-center px-2">
-                          <p className="text-3xl font-bold text-foreground line-clamp-1">{nowPlaying.title}</p>
-                          <p className="text-xl text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
+                          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground line-clamp-1">{nowPlaying.title}</p>
+                          <p className="text-base md:text-lg lg:text-xl text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
                         </div>
                       </>
                     ) : (
                       <div className="flex flex-col items-center justify-center">
-                        <h2 className="text-5xl font-bold text-foreground mb-4">Now Playing</h2>
-                        <p className="text-2xl font-semibold text-muted-foreground">Not Playing</p>
+                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 md:mb-4">Now Playing</h2>
+                        <p className="text-xl md:text-xl lg:text-2xl font-semibold text-muted-foreground">Not Playing</p>
                       </div>
                     )}
                   </button>
 
                   {/* Electricity - Bottom - Clickable */}
                   <button onClick={() => api?.scrollTo(4)} className="h-1/2 flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer bg-gradient-to-br from-green-500/10 to-blue-500/10">
-                    <Zap className="h-20 w-20 text-green-500 mb-3" />
-                    <h2 className="text-4xl font-bold text-foreground">Greenest Hour</h2>
+                    <Zap className="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 text-green-500 mb-2 md:mb-3" />
+                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">Greenest Hour</h2>
                     {electricityRecs?.cheapestWakingHour ? <>
-                        <p className="text-6xl text-foreground mt-3 font-bold">
+                        <p className="text-4xl md:text-5xl lg:text-6xl text-foreground mt-2 md:mt-3 font-bold">
                           {electricityRecs.cheapestWakingHour.hour}
                         </p>
-                        <p className="text-2xl text-muted-foreground">
+                        <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground">
                           ${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh
                         </p>
-                      </> : <p className="text-xl text-muted-foreground mt-2">Loading...</p>}
+                      </> : <p className="text-base md:text-lg lg:text-xl text-muted-foreground mt-2">Loading...</p>}
                   </button>
                 </div>
               </div>
