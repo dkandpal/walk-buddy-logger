@@ -351,7 +351,7 @@ const Index = () => {
           <CarouselItem className="h-screen">
             <div className="h-screen w-screen gradient-bg flex flex-col p-8 animate-fade-in">
               {/* Header - Clock and Family Photo */}
-              <div className="flex items-start justify-between mb-12">
+              <div className="flex items-start justify-between mb-6">
                 {/* Clock Section - Top Left */}
                 <div className="flex-1">
                   <div className="text-primary font-bold text-7xl glow-primary font-sans tracking-tight tabular-nums">
