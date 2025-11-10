@@ -8,31 +8,36 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Modern clean color palette */
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    /* Dark gradient navy to charcoal */
+    --background: 220 30% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 220 25% 16%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 220 25% 16%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Modern blue for primary actions */
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    /* Turquoise-blue glow for primary */
+    --primary: 180 80% 55%;
+    --primary-foreground: 220 30% 10%;
 
-    /* Soft gray for secondary */
-    --secondary: 214 32% 91%;
-    --secondary-foreground: 222 47% 11%;
+    /* Dark secondary */
+    --secondary: 215 20% 30%;
+    --secondary-foreground: 0 0% 98%;
 
-    /* Muted colors */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* Muted dark colors */
+    --muted: 220 15% 22%;
+    --muted-foreground: 220 10% 65%;
 
-    /* Accent blue */
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
+    /* Dark accent */
+    --accent: 220 20% 20%;
+    --accent-foreground: 0 0% 98%;
+    
+    /* Accent colors for widgets */
+    --accent-pink: 330 80% 65%;
+    --accent-green: 150 70% 50%;
+    --accent-blue: 210 80% 60%;
 
     /* Alert red */
     --destructive: 0 84% 60%;
@@ -44,11 +49,13 @@ All colors MUST be HSL.
 
     --radius: 1.5rem;
 
-    /* Custom gradient and shadow tokens */
-    --gradient-bg: linear-gradient(180deg, #F8FAFC, #EEF2F6);
-    --gradient-green: linear-gradient(135deg, #D1FAE5, #A7F3D0);
-    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
+    /* Dark gradient and shadow tokens */
+    --gradient-bg: linear-gradient(180deg, hsl(220, 30%, 10%), hsl(220, 25%, 8%));
+    --gradient-green: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
+    --gradient-pink: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(219, 39, 119, 0.15));
+    --gradient-blue: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.15));
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.5);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -61,39 +68,45 @@ All colors MUST be HSL.
   }
 
   .dark {
-    /* Dark mode with clean aesthetic */
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
+    /* Same as root for consistent dark theme */
+    --background: 220 30% 10%;
+    --foreground: 0 0% 98%;
 
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
+    --card: 220 25% 16%;
+    --card-foreground: 0 0% 98%;
 
-    --popover: 217 33% 17%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 220 25% 16%;
+    --popover-foreground: 0 0% 98%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 180 80% 55%;
+    --primary-foreground: 220 30% 10%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 215 20% 30%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 223 47% 11%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 220 15% 22%;
+    --muted-foreground: 220 10% 65%;
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 220 20% 20%;
+    --accent-foreground: 0 0% 98%;
+    
+    --accent-pink: 330 80% 65%;
+    --accent-green: 150 70% 50%;
+    --accent-blue: 210 80% 60%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217 33% 24%;
-    --input: 217 33% 24%;
-    --ring: 217 91% 60%;
+    --border: 220 20% 25%;
+    --input: 220 20% 25%;
+    --ring: 180 80% 55%;
     
-    --gradient-bg: linear-gradient(180deg, #0F172A, #1E293B);
-    --gradient-green: linear-gradient(135deg, #065F46, #047857);
-    --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.3);
-    --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --gradient-bg: linear-gradient(180deg, hsl(220, 30%, 10%), hsl(220, 25%, 8%));
+    --gradient-green: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(5, 150, 105, 0.15));
+    --gradient-pink: linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(219, 39, 119, 0.15));
+    --gradient-blue: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(37, 99, 235, 0.15));
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.5);
     
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
@@ -131,6 +144,30 @@ All colors MUST be HSL.
 
   .gradient-green {
     background: var(--gradient-green);
+  }
+  
+  .gradient-pink {
+    background: var(--gradient-pink);
+  }
+  
+  .gradient-blue {
+    background: var(--gradient-blue);
+  }
+
+  /* Glassmorphism effect */
+  .glass-card {
+    background: rgba(30, 41, 59, 0.4);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Glow effects */
+  .glow-primary {
+    text-shadow: 0 0 20px rgba(94, 234, 212, 0.6), 0 0 40px rgba(94, 234, 212, 0.3);
+  }
+
+  .glow-border {
+    box-shadow: 0 0 20px rgba(94, 234, 212, 0.3), 0 0 40px rgba(94, 234, 212, 0.15);
   }
 
   .animate-fade-in {

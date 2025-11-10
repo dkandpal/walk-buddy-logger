@@ -347,125 +347,139 @@ const Index = () => {
   return <>
       <Carousel setApi={setApi} className="h-screen overflow-hidden">
         <CarouselContent>
-          {/* Slide 0: Home Screen - Modern Dashboard */}
+          {/* Slide 0: Home Screen - Dark Glassmorphism Dashboard */}
           <CarouselItem className="h-screen">
-            <div className="h-screen w-screen gradient-bg flex flex-col animate-fade-in">
-              {/* Header Bar */}
-              <header className="h-20 flex items-center justify-between px-6 md:px-8">
-                <div className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">
-                  {formatCurrentTime()}
+            <div className="h-screen w-screen gradient-bg flex flex-col p-8 animate-fade-in">
+              {/* Header - Clock and Family Photo */}
+              <div className="flex items-start justify-between mb-12">
+                {/* Clock Section - Top Left */}
+                <div className="flex-1">
+                  <div className="text-primary font-bold text-7xl glow-primary font-sans tracking-tight tabular-nums">
+                    {currentTime.toLocaleTimeString('en-US', { 
+                      hour: '2-digit', 
+                      minute: '2-digit',
+                      hour12: false 
+                    })}
+                  </div>
+                  <div className="text-foreground text-xl mt-2 font-sans">
+                    {currentTime.toLocaleDateString('en-US', { 
+                      weekday: 'long', 
+                      month: 'long', 
+                      day: 'numeric' 
+                    })}
+                  </div>
                 </div>
-                <h1 className="text-3xl md:text-4xl font-bold tracking-[0.05em] text-foreground">
-                  ORION HOME
-                </h1>
-                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden ring-2 ring-border">
-                  <img src={familyPhoto} alt="Family" className="w-full h-full object-cover" />
+                
+                {/* Family Photo - Top Right */}
+                <div className="w-32 h-32 rounded-full overflow-hidden glow-border border-2 border-primary/30">
+                  <img 
+                    src={familyPhoto} 
+                    alt="Family" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              </header>
+              </div>
 
-              {/* Main Grid - 3 columns */}
-              <main className="flex-1 px-6 md:px-8 pb-6 md:pb-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 overflow-auto">
-                {/* Weather Card */}
+              {/* Main Dashboard Grid - 2 rows */}
+              <div className="flex-1 grid grid-cols-3 grid-rows-2 gap-6">
+                {/* Weather Widget - Top Left */}
                 <button 
-                  onClick={() => api?.scrollTo(3)} 
-                  className="bg-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] group"
+                  onClick={() => api?.scrollTo(3)}
+                  className="glass-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 gradient-blue"
                 >
-                  <div className="flex flex-col items-center gap-3">
-                    {getWeatherIcon(weather?.weatherCode || null, 12)}
-                    <div className="text-center">
-                      <div className="text-5xl md:text-6xl font-bold text-foreground mb-2">
-                        {weather?.temperature ? `${weather.temperature}°F` : '--°'}
-                      </div>
-                      {detailedWeather?.current_apparent && (
-                        <div className="text-base text-muted-foreground mb-1">
-                          Feels like {Math.round(detailedWeather.current_apparent)}°F
-                        </div>
-                      )}
-                      <div className="text-sm text-muted-foreground">
+                  <div className="h-full flex flex-col justify-between">
+                    <div>
+                      <h3 className="text-muted-foreground text-base font-medium mb-4">
                         Fort Greene, NY
+                      </h3>
+                      <div className="text-foreground text-6xl font-bold mb-2 tabular-nums">
+                        {weather?.temperature ? `${weather.temperature}°` : '--°'}
                       </div>
+                      <div className="text-muted-foreground text-sm">
+                        {detailedWeather?.current_apparent 
+                          ? `Feels like ${Math.round(detailedWeather.current_apparent)}°F`
+                          : 'Loading...'}
+                      </div>
+                    </div>
+                    <div className="text-5xl opacity-60">
+                      {weather?.weatherCode !== undefined && weather.weatherCode !== null 
+                        ? (weather.weatherCode === 0 || weather.weatherCode === 1 ? '☀️' : 
+                           weather.weatherCode === 2 || weather.weatherCode === 3 ? '☁️' : 
+                           weather.weatherCode >= 51 && weather.weatherCode <= 67 ? '🌧️' : '☁️')
+                        : '☁️'}
                     </div>
                   </div>
                 </button>
 
-                {/* Dog Walk Card */}
+                {/* Dog Walk Timer - Top Center */}
                 <button 
-                  onClick={() => api?.scrollTo(1)} 
-                  className="bg-[#DBEAFE] rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] group"
+                  onClick={() => api?.scrollTo(1)}
+                  className="glass-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 gradient-pink flex flex-col items-center justify-center"
                 >
-                  <Dog className="w-8 h-8 text-foreground mb-3 opacity-50" />
-                  <h2 className="text-xl font-medium text-foreground mb-3">Dog Walk</h2>
-                  <div className="text-5xl md:text-6xl font-bold text-foreground tabular-nums mb-2">
-                    {formatTimeHoursMinutes(timeRemaining)}
+                  <div className="text-5xl mb-4">🐾</div>
+                  <h3 className="text-foreground text-xl font-semibold mb-4">Dog Walk</h3>
+                  <div className="text-accent-pink text-5xl font-bold mb-3 font-sans tabular-nums">
+                    {formatTime(timeRemaining).substring(0, 5)}
                   </div>
-                  {lastWalkTime && (
-                    <div className="text-sm text-muted-foreground">
-                      Last walk: {formatLastWalk(lastWalkTime)}
-                    </div>
-                  )}
+                  <div className="text-muted-foreground text-sm">
+                    Last walk: {formatLastWalk(lastWalkTime)}
+                  </div>
                   {isOverdue && (
-                    <div className="mt-2 text-destructive text-lg font-bold animate-pulse">
+                    <div className="mt-3 text-destructive text-base font-bold animate-pulse">
                       🚨 NEEDS WALK
                     </div>
                   )}
                 </button>
 
-                {/* Now Playing Card */}
+                {/* Now Playing - Top Right */}
                 <button 
-                  onClick={() => api?.scrollTo(2)} 
-                  className="bg-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] group"
+                  onClick={() => api?.scrollTo(2)}
+                  className="glass-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center"
                 >
-                  {nowPlaying?.playing && nowPlaying.image ? (
-                    <>
-                      <img 
-                        src={nowPlaying.image} 
-                        alt="Album Art" 
-                        className="w-24 h-24 rounded-lg mb-3 object-cover" 
-                      />
-                      <div className="text-center">
-                        <h2 className="text-xl font-medium text-foreground mb-1">Now Playing</h2>
-                        <p className="text-lg font-bold text-foreground line-clamp-1">{nowPlaying.title}</p>
-                        <p className="text-sm text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
-                      </div>
-                    </>
+                  <div className="text-4xl mb-4">🎵</div>
+                  <h3 className="text-foreground text-xl font-semibold mb-3">Now Playing</h3>
+                  {nowPlaying?.playing && nowPlaying.title ? (
+                    <div className="text-center">
+                      <p className="text-foreground text-base font-medium line-clamp-1">
+                        {nowPlaying.title}
+                      </p>
+                      <p className="text-muted-foreground text-sm line-clamp-1 mt-1">
+                        {nowPlaying.artist}
+                      </p>
+                    </div>
                   ) : (
-                    <div className="flex flex-col items-center justify-center text-center">
-                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-3">
-                        <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                        </svg>
-                      </div>
-                      <h2 className="text-xl font-medium text-foreground mb-1">Now Playing</h2>
-                      <p className="text-base text-muted-foreground">Not Playing</p>
+                    <div className="text-muted-foreground text-base">
+                      Not Playing
                     </div>
                   )}
                 </button>
 
-                {/* Greenest Hour Card */}
+                {/* Greenest Hour - Full Width Bottom */}
                 <button 
-                  onClick={() => api?.scrollTo(4)} 
-                  className="gradient-green rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] md:col-span-3 group"
+                  onClick={() => api?.scrollTo(4)}
+                  className="col-span-3 glass-card rounded-3xl p-8 card-shadow hover:card-shadow-hover transition-all duration-300 gradient-green flex items-center justify-between"
                 >
-                  <div className="flex items-center gap-8 w-full justify-center flex-wrap">
-                    <Zap className="w-12 h-12 text-green-700" />
-                    <div className="text-center">
-                      <h2 className="text-xl font-bold text-foreground mb-2">Greenest Hour</h2>
-                      {electricityRecs?.cheapestWakingHour ? (
-                        <>
-                          <p className="text-5xl md:text-6xl font-bold text-foreground mb-1">
-                            {electricityRecs.cheapestWakingHour.hour}
-                          </p>
-                          <p className="text-base text-muted-foreground">
-                            ${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-base text-muted-foreground">Loading...</p>
-                      )}
+                  <div className="flex items-center gap-6">
+                    <div className="text-6xl">⚡</div>
+                    <div>
+                      <h3 className="text-foreground text-2xl font-bold mb-1">Greenest Hour</h3>
+                      <div className="text-muted-foreground text-base">Best time to use electricity</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-accent-green text-6xl font-bold mb-2 tabular-nums">
+                      {electricityRecs?.cheapestWakingHour 
+                        ? electricityRecs.cheapestWakingHour.hour
+                        : '--'}
+                    </div>
+                    <div className="text-muted-foreground text-xl">
+                      {electricityRecs?.cheapestWakingHour 
+                        ? `$${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh`
+                        : 'Loading...'}
                     </div>
                   </div>
                 </button>
-              </main>
+              </div>
             </div>
           </CarouselItem>
 
