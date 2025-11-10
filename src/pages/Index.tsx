@@ -453,7 +453,7 @@ const Index = () => {
                 {/* Now Playing - Full Width Bottom */}
                 <button 
                   onClick={() => api?.scrollTo(2)}
-                  className="col-span-3 glass-card rounded-3xl p-8 card-shadow hover:card-shadow-hover transition-all duration-300 flex items-center gap-8"
+                  className="col-span-3 glass-card rounded-3xl px-8 py-4 card-shadow hover:card-shadow-hover transition-all duration-300 flex items-center gap-8"
                 >
                   {nowPlaying?.playing && nowPlaying.image ? (
                     <>
