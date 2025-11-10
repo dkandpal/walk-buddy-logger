@@ -361,10 +361,10 @@ const Index = () => {
                 <div className="w-32"></div> {/* Spacer for centering */}
               </div>
 
-              {/* Main Grid - Updated with 3 sections */}
-              <div className="flex-1 grid grid-cols-3 gap-0">
+              {/* Main Grid - Updated with 3 sections, landscape optimized */}
+              <div className="flex-1 grid grid-cols-3 landscape:grid-cols-5 landscape:grid-rows-2 gap-0">
                 {/* Left Column: Family Photo */}
-                <div className="flex flex-col h-full">
+                <div className="flex flex-col h-full landscape:col-span-2 landscape:row-span-2">
                   {/* Family Photo - Full Height */}
                   <div className="h-full relative overflow-hidden">
                     <img src={familyPhoto} alt="Family" className="w-full h-full object-cover" />
@@ -372,9 +372,9 @@ const Index = () => {
                 </div>
 
                 {/* Middle Column: Weather + Dog Timer */}
-                <div className="flex flex-col h-full border-l-2 border-border">
+                <div className="flex flex-col h-full border-l-2 border-border landscape:col-span-2 landscape:row-span-1 landscape:flex-row landscape:border-b-2">
                   {/* Weather - Top - Clickable */}
-                  <button onClick={() => api?.scrollTo(3)} className="h-1/2 bg-card flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer">
+                  <button onClick={() => api?.scrollTo(3)} className="h-1/2 landscape:h-full landscape:w-1/2 bg-card flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer">
                     <div className="flex items-center gap-3">
                       {getWeatherIcon(weather?.weatherCode || null, 16)}
                       <div>
@@ -394,7 +394,7 @@ const Index = () => {
                   </button>
 
                   {/* Dog Timer - Bottom - Clickable */}
-                  <button onClick={() => api?.scrollTo(1)} className="h-1/2 flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer">
+                  <button onClick={() => api?.scrollTo(1)} className="h-1/2 landscape:h-full landscape:w-1/2 flex flex-col items-center justify-center bg-background border-t-2 landscape:border-t-0 landscape:border-l-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer">
                     <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 md:mb-4">Dog Walk</h2>
                     <div className="text-6xl md:text-7xl lg:text-9xl font-black text-foreground tabular-nums tracking-tight">
                       {formatTimeHoursMinutes(timeRemaining)}
@@ -411,7 +411,7 @@ const Index = () => {
                 </div>
 
                 {/* Right Column: Music + Electricity */}
-                <div className="flex flex-col h-full border-l-2 border-border">
+                <div className="flex flex-col h-full border-l-2 border-border landscape:col-span-1 landscape:row-span-2 landscape:border-t-2">
                   {/* Music - Top - Clickable */}
                   <button onClick={() => api?.scrollTo(2)} className="h-1/2 flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer gap-2 md:gap-3">
                     {nowPlaying?.playing && nowPlaying.image ? (
