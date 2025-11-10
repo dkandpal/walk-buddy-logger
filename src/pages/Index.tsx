@@ -431,53 +431,85 @@ const Index = () => {
                   )}
                 </button>
 
-                {/* Now Playing - Top Right */}
-                <button 
-                  onClick={() => api?.scrollTo(2)}
-                  className="glass-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center"
-                >
-                  <div className="text-4xl mb-4">🎵</div>
-                  <h3 className="text-foreground text-xl font-semibold mb-3">Now Playing</h3>
-                  {nowPlaying?.playing && nowPlaying.title ? (
-                    <div className="text-center">
-                      <p className="text-foreground text-base font-medium line-clamp-1">
-                        {nowPlaying.title}
-                      </p>
-                      <p className="text-muted-foreground text-sm line-clamp-1 mt-1">
-                        {nowPlaying.artist}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground text-base">
-                      Not Playing
-                    </div>
-                  )}
-                </button>
-
-                {/* Greenest Hour - Full Width Bottom */}
+                {/* Greenest Hour - Top Right */}
                 <button 
                   onClick={() => api?.scrollTo(4)}
-                  className="col-span-3 glass-card rounded-3xl p-8 card-shadow hover:card-shadow-hover transition-all duration-300 gradient-green flex items-center justify-between"
+                  className="glass-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 gradient-green flex flex-col items-center justify-center"
                 >
-                  <div className="flex items-center gap-6">
-                    <div className="text-6xl">⚡</div>
-                    <div>
-                      <h3 className="text-foreground text-2xl font-bold mb-1">Greenest Hour</h3>
-                      <div className="text-muted-foreground text-base">Best time to use electricity</div>
-                    </div>
+                  <div className="text-5xl mb-4">⚡</div>
+                  <h3 className="text-foreground text-xl font-semibold mb-4">Greenest Hour</h3>
+                  <div className="text-accent-green text-5xl font-bold mb-2 tabular-nums">
+                    {electricityRecs?.cheapestWakingHour 
+                      ? electricityRecs.cheapestWakingHour.hour
+                      : '--'}
                   </div>
-                  <div className="text-right">
-                    <div className="text-accent-green text-6xl font-bold mb-2 tabular-nums">
-                      {electricityRecs?.cheapestWakingHour 
-                        ? electricityRecs.cheapestWakingHour.hour
-                        : '--'}
-                    </div>
-                    <div className="text-muted-foreground text-xl">
-                      {electricityRecs?.cheapestWakingHour 
-                        ? `$${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh`
-                        : 'Loading...'}
-                    </div>
+                  <div className="text-muted-foreground text-sm">
+                    {electricityRecs?.cheapestWakingHour 
+                      ? `$${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh`
+                      : 'Loading...'}
                   </div>
+                </button>
+
+                {/* Now Playing - Full Width Bottom */}
+                <button 
+                  onClick={() => api?.scrollTo(2)}
+                  className="col-span-3 glass-card rounded-3xl p-8 card-shadow hover:card-shadow-hover transition-all duration-300 flex items-center gap-8"
+                >
+                  {nowPlaying?.playing && nowPlaying.image ? (
+                    <>
+                      {/* Album Art */}
+                      <div className="w-32 h-32 rounded-2xl overflow-hidden flex-shrink-0">
+                        <img 
+                          src={nowPlaying.image} 
+                          alt="Album Art" 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      
+                      {/* Track Info */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-muted-foreground text-sm font-medium mb-2">Now Playing</h3>
+                        <p className="text-foreground text-2xl font-bold truncate mb-1">
+                          {nowPlaying.title}
+                        </p>
+                        <p className="text-muted-foreground text-lg truncate">
+                          {nowPlaying.artist}
+                        </p>
+                      </div>
+                      
+                      {/* Music Controls */}
+                      <div className="flex items-center gap-4 flex-shrink-0">
+                        <button className="w-12 h-12 rounded-full bg-muted/30 hover:bg-muted/50 transition-colors flex items-center justify-center">
+                          <svg className="w-6 h-6 text-foreground" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+                          </svg>
+                        </button>
+                        <button className="w-16 h-16 rounded-full bg-primary hover:bg-primary/80 transition-colors flex items-center justify-center">
+                          <svg className="w-8 h-8 text-primary-foreground" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M6 4h4v16H6zm8 0h4v16h-4z"/>
+                          </svg>
+                        </button>
+                        <button className="w-12 h-12 rounded-full bg-muted/30 hover:bg-muted/50 transition-colors flex items-center justify-center">
+                          <svg className="w-6 h-6 text-foreground" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M16 18l-8.5-6L16 6v12zm-2-12v12h2V6h-2z"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center gap-8 w-full">
+                      <div className="w-32 h-32 rounded-2xl bg-muted/30 flex items-center justify-center flex-shrink-0">
+                        <svg className="w-16 h-16 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-muted-foreground text-sm font-medium mb-2">Now Playing</h3>
+                        <p className="text-foreground text-2xl font-bold">Not Playing</p>
+                        <p className="text-muted-foreground text-lg">Connect Spotify to see what's playing</p>
+                      </div>
+                    </div>
+                  )}
                 </button>
               </div>
             </div>
