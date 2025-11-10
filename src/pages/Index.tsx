@@ -347,108 +347,125 @@ const Index = () => {
   return <>
       <Carousel setApi={setApi} className="h-screen overflow-hidden">
         <CarouselContent>
-          {/* Slide 0: Home Screen - Full Screen */}
+          {/* Slide 0: Home Screen - Modern Dashboard */}
           <CarouselItem className="h-screen">
-            <div className="h-screen w-screen bg-background flex flex-col">
-              {/* Header */}
-              <div className="h-20 flex items-center justify-between px-8 border-b-2 border-border bg-card">
-                <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground tabular-nums">
+            <div className="h-screen w-screen gradient-bg flex flex-col animate-fade-in">
+              {/* Header Bar */}
+              <header className="h-20 flex items-center justify-between px-6 md:px-8">
+                <div className="text-2xl md:text-3xl font-bold text-foreground tabular-nums">
                   {formatCurrentTime()}
                 </div>
-                <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-foreground tracking-tight">
+                <h1 className="text-3xl md:text-4xl font-bold tracking-[0.05em] text-foreground">
                   ORION HOME
                 </h1>
-                <div className="w-32"></div> {/* Spacer for centering */}
-              </div>
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden ring-2 ring-border">
+                  <img src={familyPhoto} alt="Family" className="w-full h-full object-cover" />
+                </div>
+              </header>
 
-              {/* Main Grid - Updated with 3 sections, landscape optimized */}
-              <div className="flex-1 grid grid-cols-3 landscape:grid-cols-5 landscape:grid-rows-2 gap-0">
-                {/* Left Column: Family Photo */}
-                <div className="flex flex-col h-full landscape:col-span-2 landscape:row-span-2">
-                  {/* Family Photo - Full Height */}
-                  <div className="h-full relative overflow-hidden">
-                    <img src={familyPhoto} alt="Family" className="w-full h-full object-cover" />
+              {/* Main Grid - 3 columns */}
+              <main className="flex-1 px-6 md:px-8 pb-6 md:pb-8 grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 overflow-auto">
+                {/* Weather Card */}
+                <button 
+                  onClick={() => api?.scrollTo(3)} 
+                  className="bg-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] group"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    {getWeatherIcon(weather?.weatherCode || null, 12)}
+                    <div className="text-center">
+                      <div className="text-5xl md:text-6xl font-bold text-foreground mb-2">
+                        {weather?.temperature ? `${weather.temperature}°F` : '--°'}
+                      </div>
+                      {detailedWeather?.current_apparent && (
+                        <div className="text-base text-muted-foreground mb-1">
+                          Feels like {Math.round(detailedWeather.current_apparent)}°F
+                        </div>
+                      )}
+                      <div className="text-sm text-muted-foreground">
+                        Fort Greene, NY
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </button>
 
-                {/* Middle Column: Weather + Dog Timer */}
-                <div className="flex flex-col h-full border-l-2 border-border landscape:col-span-2 landscape:row-span-1 landscape:flex-row landscape:border-b-2">
-                  {/* Weather - Top - Clickable */}
-                  <button onClick={() => api?.scrollTo(3)} className="h-1/2 landscape:h-full landscape:w-1/2 bg-card flex items-center justify-center px-4 hover:bg-accent/5 transition-colors cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      {getWeatherIcon(weather?.weatherCode || null, 16)}
-                      <div>
-                        <div className="text-5xl md:text-6xl lg:text-8xl font-black text-foreground">
-                          {weather?.temperature ? `${weather.temperature}°F` : '--°'}
-                        </div>
-                        {detailedWeather?.current_apparent && (
-                          <div className="text-xl md:text-2xl lg:text-3xl text-muted-foreground font-semibold">
-                            Feels like {Math.round(detailedWeather.current_apparent)}°F
-                          </div>
-                        )}
-                        <div className="text-base md:text-lg lg:text-xl text-muted-foreground font-semibold">
-                          Fort Greene, NY
-                        </div>
-                      </div>
+                {/* Dog Walk Card */}
+                <button 
+                  onClick={() => api?.scrollTo(1)} 
+                  className="bg-[#DBEAFE] rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] group"
+                >
+                  <Dog className="w-8 h-8 text-foreground mb-3 opacity-50" />
+                  <h2 className="text-xl font-medium text-foreground mb-3">Dog Walk</h2>
+                  <div className="text-5xl md:text-6xl font-bold text-foreground tabular-nums mb-2">
+                    {formatTimeHoursMinutes(timeRemaining)}
+                  </div>
+                  {lastWalkTime && (
+                    <div className="text-sm text-muted-foreground">
+                      Last walk: {formatLastWalk(lastWalkTime)}
                     </div>
-                  </button>
-
-                  {/* Dog Timer - Bottom - Clickable */}
-                  <button onClick={() => api?.scrollTo(1)} className="h-1/2 landscape:h-full landscape:w-1/2 flex flex-col items-center justify-center bg-background border-t-2 landscape:border-t-0 landscape:border-l-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer">
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 md:mb-4">Dog Walk</h2>
-                    <div className="text-6xl md:text-7xl lg:text-9xl font-black text-foreground tabular-nums tracking-tight">
-                      {formatTimeHoursMinutes(timeRemaining)}
+                  )}
+                  {isOverdue && (
+                    <div className="mt-2 text-destructive text-lg font-bold animate-pulse">
+                      🚨 NEEDS WALK
                     </div>
-                    {lastWalkTime && (
-                      <div className="text-lg md:text-xl lg:text-2xl text-muted-foreground mt-1 md:mt-2">
-                        Last walk: {formatLastWalk(lastWalkTime)}
-                      </div>
-                    )}
-                    {isOverdue && <div className="mt-2 md:mt-4 text-destructive text-xl md:text-2xl lg:text-3xl font-bold animate-pulse">
-                        🚨 NEEDS WALK
-                      </div>}
-                  </button>
-                </div>
+                  )}
+                </button>
 
-                {/* Right Column: Music + Electricity */}
-                <div className="flex flex-col h-full border-l-2 border-border landscape:col-span-1 landscape:row-span-2 landscape:border-t-2">
-                  {/* Music - Top - Clickable */}
-                  <button onClick={() => api?.scrollTo(2)} className="h-1/2 flex flex-col items-center justify-center bg-card px-4 hover:bg-accent/5 transition-colors cursor-pointer gap-2 md:gap-3">
-                    {nowPlaying?.playing && nowPlaying.image ? (
-                      <>
-                        <img 
-                          src={nowPlaying.image} 
-                          alt="Album Art" 
-                          className="flex-1 w-auto object-contain max-h-[65%]" 
-                        />
-                        <div className="space-y-1 text-center px-2">
-                          <p className="text-xl md:text-2xl lg:text-3xl font-bold text-foreground line-clamp-1">{nowPlaying.title}</p>
-                          <p className="text-base md:text-lg lg:text-xl text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center">
-                        <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-2 md:mb-4">Now Playing</h2>
-                        <p className="text-xl md:text-xl lg:text-2xl font-semibold text-muted-foreground">Not Playing</p>
+                {/* Now Playing Card */}
+                <button 
+                  onClick={() => api?.scrollTo(2)} 
+                  className="bg-card rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] group"
+                >
+                  {nowPlaying?.playing && nowPlaying.image ? (
+                    <>
+                      <img 
+                        src={nowPlaying.image} 
+                        alt="Album Art" 
+                        className="w-24 h-24 rounded-lg mb-3 object-cover" 
+                      />
+                      <div className="text-center">
+                        <h2 className="text-xl font-medium text-foreground mb-1">Now Playing</h2>
+                        <p className="text-lg font-bold text-foreground line-clamp-1">{nowPlaying.title}</p>
+                        <p className="text-sm text-muted-foreground line-clamp-1">{nowPlaying.artist}</p>
                       </div>
-                    )}
-                  </button>
+                    </>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                        <svg className="w-8 h-8 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+                        </svg>
+                      </div>
+                      <h2 className="text-xl font-medium text-foreground mb-1">Now Playing</h2>
+                      <p className="text-base text-muted-foreground">Not Playing</p>
+                    </div>
+                  )}
+                </button>
 
-                  {/* Electricity - Bottom - Clickable */}
-                  <button onClick={() => api?.scrollTo(4)} className="h-1/2 flex flex-col items-center justify-center bg-background border-t-2 border-border px-4 hover:bg-accent/5 transition-colors cursor-pointer bg-gradient-to-br from-green-500/10 to-blue-500/10">
-                    <Zap className="h-14 w-14 md:h-16 md:w-16 lg:h-20 lg:w-20 text-green-500 mb-2 md:mb-3" />
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground">Greenest Hour</h2>
-                    {electricityRecs?.cheapestWakingHour ? <>
-                        <p className="text-4xl md:text-5xl lg:text-6xl text-foreground mt-2 md:mt-3 font-bold">
-                          {electricityRecs.cheapestWakingHour.hour}
-                        </p>
-                        <p className="text-lg md:text-xl lg:text-2xl text-muted-foreground">
-                          ${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh
-                        </p>
-                      </> : <p className="text-base md:text-lg lg:text-xl text-muted-foreground mt-2">Loading...</p>}
-                  </button>
-                </div>
-              </div>
+                {/* Greenest Hour Card */}
+                <button 
+                  onClick={() => api?.scrollTo(4)} 
+                  className="gradient-green rounded-3xl p-6 card-shadow hover:card-shadow-hover transition-all duration-300 flex flex-col items-center justify-center min-h-[220px] md:col-span-3 group"
+                >
+                  <div className="flex items-center gap-8 w-full justify-center flex-wrap">
+                    <Zap className="w-12 h-12 text-green-700" />
+                    <div className="text-center">
+                      <h2 className="text-xl font-bold text-foreground mb-2">Greenest Hour</h2>
+                      {electricityRecs?.cheapestWakingHour ? (
+                        <>
+                          <p className="text-5xl md:text-6xl font-bold text-foreground mb-1">
+                            {electricityRecs.cheapestWakingHour.hour}
+                          </p>
+                          <p className="text-base text-muted-foreground">
+                            ${electricityRecs.cheapestWakingHour.price.toFixed(2)}/MWh
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-base text-muted-foreground">Loading...</p>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              </main>
             </div>
           </CarouselItem>
 
