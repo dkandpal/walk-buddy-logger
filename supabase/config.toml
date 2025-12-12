@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.get-hourly-historical-averages]
 verify_jwt = false
+
+[functions.latest-walk]
+verify_jwt = false
