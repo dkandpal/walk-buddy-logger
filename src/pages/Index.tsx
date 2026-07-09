@@ -608,8 +608,8 @@ const Index = () => {
           <CarouselItem className="h-screen">
             <div className="h-screen bg-background flex overflow-hidden relative">
               {/* Back to Home Button */}
-              <Button onClick={() => window.location.href = "https://vasu.my"} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
-                <ArrowLeft className="w-6 h-6 mr-2" />
+              <Button onClick={() => window.location.href = "https://vasu.my"} variant="outline" size="lg" className="absolute top-4 left-4 sm:top-6 sm:left-6 z-10 text-base sm:text-lg px-4 sm:px-6 py-2 sm:py-3">
+                <ArrowLeft className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                 Home
               </Button>
 
@@ -619,56 +619,59 @@ const Index = () => {
               </div>
 
               {/* Right side - Main content */}
-              <div className="w-1/2 flex flex-col items-center justify-center p-8 overflow-y-auto">
-                <div className="w-full space-y-6 text-center">
+              <div className="w-1/2 min-w-0 flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 overflow-y-auto">
+                <div className="w-full min-w-0 space-y-4 sm:space-y-6 text-center">
                   {/* Header */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-center gap-3">
-                      <Dog className="w-12 h-12 text-primary" />
-                      <h1 className="text-5xl font-extrabold text-foreground tracking-tight">
+                  <div className="space-y-2 min-w-0">
+                    <div className="flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+                      <Dog className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 text-primary flex-shrink-0" />
+                      <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-foreground tracking-tight break-words">
                         Dog Walk Tracker
                       </h1>
                     </div>
-                    
+
                     {/* Last walk info */}
-                    <p className="text-xl text-muted-foreground">
+                    <p className="text-base sm:text-lg md:text-xl text-muted-foreground break-words">
                       <span className="font-semibold">Last walk:</span>{" "}
                       {formatLastWalk(lastWalkTime)}
                     </p>
                   </div>
 
                   {/* Overdue alert */}
-                  {isOverdue && <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-2xl p-6 shadow-lg animate-pulse">
-                      <AlertCircle className="w-12 h-12 mx-auto mb-3" />
-                      <h2 className="text-3xl font-extrabold">
+                  {isOverdue && <div className="bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground rounded-2xl p-4 sm:p-6 shadow-lg animate-pulse">
+                      <AlertCircle className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 mx-auto mb-2 sm:mb-3" />
+                      <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold break-words">
                         DOG NEEDS A WALK! &lt;3
                       </h2>
                     </div>}
 
                   {/* Quiet hours message */}
-                  {isQuietHours && <div className="bg-accent/10 border-2 border-accent rounded-2xl p-5">
-                      <p className="text-lg font-bold text-accent-foreground">
+                  {isQuietHours && <div className="bg-accent/10 border-2 border-accent rounded-2xl p-3 sm:p-5">
+                      <p className="text-sm sm:text-base md:text-lg font-bold text-accent-foreground break-words">
                         🌙 Quiet hours — timer paused
                       </p>
                     </div>}
 
                   {/* Timer display */}
-                  <div className="bg-card border-2 border-border rounded-2xl p-10 shadow-[var(--shadow-soft)]">
-                    <div className="text-8xl font-black text-foreground tabular-nums tracking-tight">
+                  <div className="bg-card border-2 border-border rounded-2xl p-4 sm:p-6 md:p-10 shadow-[var(--shadow-soft)] overflow-hidden">
+                    <div
+                      className="font-black text-foreground tabular-nums tracking-tight leading-none whitespace-nowrap"
+                      style={{ fontSize: "clamp(2.5rem, 12cqi, 6rem)", containerType: "inline-size" as any }}
+                    >
                       {formatTime(timeRemaining)}
                     </div>
-                    <p className="text-xl text-muted-foreground mt-4 font-semibold">
+                    <p className="text-sm sm:text-base md:text-xl text-muted-foreground mt-2 sm:mt-4 font-semibold">
                       until next walk
                     </p>
                   </div>
 
                   {/* Walked button */}
-                  <Button onClick={() => setIsDialogOpen(true)} size="lg" className="w-full h-20 text-3xl font-extrabold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200">
+                  <Button onClick={() => setIsDialogOpen(true)} size="lg" className="w-full h-14 sm:h-16 md:h-20 text-xl sm:text-2xl md:text-3xl font-extrabold rounded-2xl bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)] transition-all duration-200">
                     WALKED
                   </Button>
 
                   {/* Last poop info */}
-                  <p className="text-xl text-muted-foreground">
+                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground break-words">
                     <span className="font-semibold">💩 Last poop:</span>{" "}
                     {lastPoopTime ? `${formatElapsedShort(lastPoopTime)} ago` : "No poop logged"}
                   </p>
@@ -676,6 +679,7 @@ const Index = () => {
               </div>
             </div>
           </CarouselItem>
+
 
           {/* Slide 2: Now Playing */}
           <CarouselItem className="flex items-center justify-center h-screen bg-background relative">
