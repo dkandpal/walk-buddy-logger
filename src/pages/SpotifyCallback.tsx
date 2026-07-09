@@ -48,7 +48,12 @@ const SpotifyCallback = () => {
         toast.error('Failed to complete Spotify connection');
       }
 
-      navigate('/');
+      const returnUrl = new URLSearchParams(window.location.search).get("return");
+      if (returnUrl && /^https?:\/\//.test(returnUrl)) {
+        setTimeout(() => { window.location.href = returnUrl; }, 600);
+      } else {
+        navigate('/');
+      }
     };
 
     handleCallback();
