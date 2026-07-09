@@ -608,10 +608,11 @@ const Index = () => {
                     WALKED
                   </Button>
 
-                  {/* Dev button */}
-                  <Button onClick={setTimerToFiveSeconds} variant="outline" size="sm" className="text-base py-4">
-                    Dev: Set timer to 5 seconds
-                  </Button>
+                  {/* Last poop info */}
+                  <p className="text-xl text-muted-foreground">
+                    <span className="font-semibold">💩 Last poop:</span>{" "}
+                    {lastPoopTime ? `${formatElapsedShort(lastPoopTime)} ago` : "No poop logged"}
+                  </p>
                 </div>
               </div>
             </div>
