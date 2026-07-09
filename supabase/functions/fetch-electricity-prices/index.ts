@@ -43,7 +43,7 @@ serve(async (req) => {
       const year = parts.find(p => p.type === 'year')?.value;
       const dateStr = `${year}${month}${day}`;
       
-      const nyisoUrl = `http://mis.nyiso.com/public/csv/damlbmp/${dateStr}damlbmp_zone.csv`;
+      const nyisoUrl = `https://mis.nyiso.com/public/csv/damlbmp/${dateStr}damlbmp_zone.csv`;
       console.log(`Fetching NYISO Day-Ahead Market data from: ${nyisoUrl}`);
       
       const response = await fetch(nyisoUrl);
