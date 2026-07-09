@@ -608,7 +608,7 @@ const Index = () => {
           <CarouselItem className="h-screen">
             <div className="h-screen bg-background flex overflow-hidden relative">
               {/* Back to Home Button */}
-              <Button onClick={() => api?.scrollTo(0)} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
+              <Button onClick={() => window.location.href = "https://vasu.my"} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
                 <ArrowLeft className="w-6 h-6 mr-2" />
                 Home
               </Button>
@@ -680,7 +680,7 @@ const Index = () => {
           {/* Slide 2: Now Playing */}
           <CarouselItem className="flex items-center justify-center h-screen bg-background relative">
             {/* Back to Home Button */}
-            <Button onClick={() => api?.scrollTo(0)} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
+            <Button onClick={() => window.location.href = "https://vasu.my"} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
               <ArrowLeft className="w-6 h-6 mr-2" />
               Home
             </Button>
@@ -740,7 +740,7 @@ const Index = () => {
           {/* Slide 3: Detailed Weather */}
           <CarouselItem className="h-screen bg-background relative">
             {/* Back to Home Button */}
-            <Button onClick={() => api?.scrollTo(0)} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
+            <Button onClick={() => window.location.href = "https://vasu.my"} variant="outline" size="lg" className="absolute top-6 left-6 z-10 text-lg px-6 py-3">
               <ArrowLeft className="w-6 h-6 mr-2" />
               Home
             </Button>
@@ -835,7 +835,7 @@ const Index = () => {
           {/* Electricity Screen */}
           <CarouselItem className="h-screen">
             <Electricity onBack={() => {
-            api?.scrollTo(0);
+            window.location.href = "https://vasu.my";
             setTimerPaused(false);
           }} />
           </CarouselItem>
