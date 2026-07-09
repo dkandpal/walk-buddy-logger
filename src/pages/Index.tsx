@@ -31,6 +31,8 @@ const QUIET_START_MINUTE = 30;
 const QUIET_END_HOUR = 6; // 6:00 AM
 
 const Index = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [lastWalkTime, setLastWalkTime] = useState<Date | null>(null);
   const [lastPoopTime, setLastPoopTime] = useState<Date | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(FOUR_HOURS_IN_MS);
@@ -39,6 +41,41 @@ const Index = () => {
   const [timerPaused, setTimerPaused] = useState(false);
   const [api, setApi] = useState<CarouselApi>();
   const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Helper to navigate to a slide by index (updates URL, carousel follows)
+  const goToSlide = useCallback(
+    (idx: number) => {
+      const path = SLIDE_TO_PATH[idx] ?? "/";
+      if (location.pathname !== path) navigate(path);
+    },
+    [navigate, location.pathname]
+  );
+
+  // When URL changes, scroll carousel to the matching slide
+  useEffect(() => {
+    if (!api) return;
+    const targetSlide = PATH_TO_SLIDE[location.pathname] ?? 0;
+    if (api.selectedScrollSnap() !== targetSlide) {
+      api.scrollTo(targetSlide);
+    }
+  }, [api, location.pathname]);
+
+  // When carousel slides (e.g. via swipe / arrows), update URL
+  useEffect(() => {
+    if (!api) return;
+    const onSelect = () => {
+      const idx = api.selectedScrollSnap();
+      const path = SLIDE_TO_PATH[idx] ?? "/";
+      if (location.pathname !== path) {
+        navigate(path);
+      }
+    };
+    api.on("select", onSelect);
+    return () => {
+      api.off("select", onSelect);
+    };
+  }, [api, navigate, location.pathname]);
+
 
   // Fetch weather data (Fort Greene, NY coordinates) - basic
   const {
