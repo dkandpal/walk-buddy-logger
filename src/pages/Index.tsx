@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { WalkDialog, type WalkType } from "@/components/WalkDialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +9,22 @@ import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext
 import { useQuery } from "@tanstack/react-query";
 import familyPhoto from "@/assets/family-photo.png";
 import Electricity from "./Electricity";
+
+// Maps between carousel slide index and URL path
+const SLIDE_TO_PATH: Record<number, string> = {
+  0: "/",
+  1: "/kerby",
+  2: "/music",
+  3: "/weather",
+  4: "/electricity",
+};
+const PATH_TO_SLIDE: Record<string, number> = {
+  "/": 0,
+  "/kerby": 1,
+  "/music": 2,
+  "/weather": 3,
+  "/electricity": 4,
+};
 const FOUR_HOURS_IN_MS = 4 * 60 * 60 * 1000;
 const QUIET_START_HOUR = 22; // 10:30 PM (we'll check minutes too)
 const QUIET_START_MINUTE = 30;
