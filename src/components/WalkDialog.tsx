@@ -9,34 +9,31 @@ import {
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 
+export type WalkType = "pee" | "pee_poop";
+
 interface WalkDialogProps {
   open: boolean;
-  onConfirm: (selectedPeople: string[]) => void;
+  onConfirm: (walkType: WalkType) => void;
   onCancel: () => void;
 }
 
-const WALKERS = ["Deva", "Kristy", "Per", "Other"];
+const OPTIONS: { value: WalkType; label: string; emoji: string }[] = [
+  { value: "pee", label: "Peed!", emoji: "💦" },
+  { value: "pee_poop", label: "Peed + 💩ed", emoji: "💦💩" },
+];
 
 export function WalkDialog({ open, onConfirm, onCancel }: WalkDialogProps) {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  const togglePerson = (person: string) => {
-    setSelected((prev) =>
-      prev.includes(person)
-        ? prev.filter((p) => p !== person)
-        : [...prev, person]
-    );
-  };
+  const [selected, setSelected] = useState<WalkType | null>(null);
 
   const handleConfirm = () => {
-    if (selected.length > 0) {
+    if (selected) {
       onConfirm(selected);
-      setSelected([]);
+      setSelected(null);
     }
   };
 
   const handleCancel = () => {
-    setSelected([]);
+    setSelected(null);
     onCancel();
   };
 
@@ -45,55 +42,32 @@ export function WalkDialog({ open, onConfirm, onCancel }: WalkDialogProps) {
       <DialogContent className="sm:max-w-md max-h-[90vh] flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">
-            Who walked the dog? 🐕
+            What kind of walk? 🐕
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="grid grid-cols-2 gap-3 py-4 overflow-y-auto">
-          {WALKERS.map((person) => (
+          {OPTIONS.map((option) => (
             <button
-              key={person}
-              onClick={() => togglePerson(person)}
+              key={option.value}
+              onClick={() => setSelected(option.value)}
               className={`
-                relative flex flex-col items-center justify-center gap-2 p-4 
-                rounded-2xl border-4 transition-all duration-200
+                relative flex flex-col items-center justify-center gap-3 p-6
+                rounded-2xl border-4 transition-all duration-200 min-h-[160px]
                 ${
-                  selected.includes(person)
+                  selected === option.value
                     ? "border-primary bg-primary/10 scale-105 shadow-[var(--shadow-playful)]"
                     : "border-border bg-card hover:border-primary/50 hover:scale-102"
                 }
               `}
             >
-              {selected.includes(person) && (
+              {selected === option.value && (
                 <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
                   <Check className="w-4 h-4 text-primary-foreground" />
                 </div>
               )}
-              <div className="w-20 h-20 flex items-center justify-center">
-                {person === "Deva" && (
-                  <img 
-                    src="/deva.JPG" 
-                    alt="Deva" 
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                )}
-                {person === "Kristy" && (
-                  <img 
-                    src="/kristy.jpeg" 
-                    alt="Kristy" 
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                )}
-                {person === "Per" && (
-                  <img 
-                    src="/per.jpeg" 
-                    alt="Per" 
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                )}
-                {person === "Other" && <div className="text-5xl">🤗</div>}
-              </div>
-              <span className="text-lg font-bold">{person}</span>
+              <div className="text-5xl">{option.emoji}</div>
+              <span className="text-lg font-bold text-center">{option.label}</span>
             </button>
           ))}
         </div>
@@ -108,7 +82,7 @@ export function WalkDialog({ open, onConfirm, onCancel }: WalkDialogProps) {
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={selected.length === 0}
+            disabled={!selected}
             className="flex-1 h-12 text-base font-bold bg-gradient-to-r from-primary to-primary/80 hover:shadow-[var(--shadow-playful)]"
           >
             Confirm
