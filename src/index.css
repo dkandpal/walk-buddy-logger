@@ -124,10 +124,24 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
+  /* Smoothly scale the whole dashboard down on smaller screens
+     (e.g. 7" tablets). All Tailwind rem-based sizing — fonts, padding,
+     margins, widths like w-32/w-96 — scales proportionally with the
+     root font-size, so the landscape layout keeps its proportions. */
+  html {
+    font-size: clamp(9px, 1.25vw, 16px);
+  }
+  @media (min-width: 1280px) {
+    html {
+      font-size: 16px;
+    }
+  }
+
   body {
     @apply bg-background text-foreground font-sans;
   }
 }
+
 
 @layer utilities {
   .card-shadow {
