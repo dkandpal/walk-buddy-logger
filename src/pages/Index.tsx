@@ -330,6 +330,11 @@ const Index = () => {
     } else {
       toast.success("Walk recorded! Peed 💦");
     }
+
+    const returnUrl = new URLSearchParams(window.location.search).get("return");
+    if (returnUrl && /^https?:\/\//.test(returnUrl)) {
+      setTimeout(() => { window.location.href = returnUrl; }, 600);
+    }
   };
 
   // Format time remaining (HH:MM:SS)
