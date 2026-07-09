@@ -18,6 +18,10 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/kerby" element={<Index />} />
+          <Route path="/music" element={<Index />} />
+          <Route path="/weather" element={<Index />} />
+          <Route path="/electricity" element={<Index />} />
           <Route path="/spotify-callback" element={<SpotifyCallback />} />
           <Route path="/unsubscribe" element={<Unsubscribe />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
