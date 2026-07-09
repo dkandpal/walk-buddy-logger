@@ -327,12 +327,6 @@ const Index = () => {
     return `${mins}m`;
   };
 
-  // Dev function: set timer to 5 seconds
-  const setTimerToFiveSeconds = () => {
-    setTimeRemaining(5000);
-    setTimerPaused(false);
-    toast.info("Timer set to 5 seconds (dev mode)");
-  };
   const isOverdue = timeRemaining === 0 && !isQuietHours && !timerPaused;
 
   // Get weather icon based on weather code
@@ -614,10 +608,11 @@ const Index = () => {
                     WALKED
                   </Button>
 
-                  {/* Dev button */}
-                  <Button onClick={setTimerToFiveSeconds} variant="outline" size="sm" className="text-base py-4">
-                    Dev: Set timer to 5 seconds
-                  </Button>
+                  {/* Last poop info */}
+                  <p className="text-xl text-muted-foreground">
+                    <span className="font-semibold">💩 Last poop:</span>{" "}
+                    {lastPoopTime ? `${formatElapsedShort(lastPoopTime)} ago` : "No poop logged"}
+                  </p>
                 </div>
               </div>
             </div>
