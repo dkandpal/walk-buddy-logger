@@ -327,12 +327,6 @@ const Index = () => {
     return `${mins}m`;
   };
 
-  // Dev function: set timer to 5 seconds
-  const setTimerToFiveSeconds = () => {
-    setTimeRemaining(5000);
-    setTimerPaused(false);
-    toast.info("Timer set to 5 seconds (dev mode)");
-  };
   const isOverdue = timeRemaining === 0 && !isQuietHours && !timerPaused;
 
   // Get weather icon based on weather code
