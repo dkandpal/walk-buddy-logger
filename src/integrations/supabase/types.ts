@@ -180,20 +180,23 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          walk_type: string
           walked_at: string
-          walked_by: string[]
+          walked_by: string[] | null
         }
         Insert: {
           created_at?: string
           id?: string
+          walk_type?: string
           walked_at?: string
-          walked_by: string[]
+          walked_by?: string[] | null
         }
         Update: {
           created_at?: string
           id?: string
+          walk_type?: string
           walked_at?: string
-          walked_by?: string[]
+          walked_by?: string[] | null
         }
         Relationships: []
       }

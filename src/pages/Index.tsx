@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { WalkDialog } from "@/components/WalkDialog";
+import { WalkDialog, type WalkType } from "@/components/WalkDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Dog, AlertCircle, Cloud, CloudRain, Sun, CloudSnow, Home, ArrowLeft, Zap } from "lucide-react";
@@ -15,6 +15,7 @@ const QUIET_END_HOUR = 6; // 6:00 AM
 
 const Index = () => {
   const [lastWalkTime, setLastWalkTime] = useState<Date | null>(null);
+  const [lastPoopTime, setLastPoopTime] = useState<Date | null>(null);
   const [timeRemaining, setTimeRemaining] = useState(FOUR_HOURS_IN_MS);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isQuietHours, setIsQuietHours] = useState(false);
@@ -142,20 +143,31 @@ const Index = () => {
   // Load last walk from database
   useEffect(() => {
     const loadLastWalk = async () => {
-      const {
-        data,
-        error
-      } = await supabase.from("walks").select("walked_at, walked_by").order("walked_at", {
-        ascending: false
-      }).limit(1).single();
+      const { data, error } = await supabase
+        .from("walks")
+        .select("walked_at, walked_by, walk_type")
+        .order("walked_at", { ascending: false })
+        .limit(1)
+        .single();
       if (data && !error) {
         const walkTime = new Date(data.walked_at);
         setLastWalkTime(walkTime);
 
-        // Calculate time remaining based on last walk
         const elapsed = Date.now() - walkTime.getTime();
         const remaining = Math.max(0, FOUR_HOURS_IN_MS - elapsed);
         setTimeRemaining(remaining);
+      }
+
+      // Last poop (most recent walk with poop)
+      const { data: poopData } = await supabase
+        .from("walks")
+        .select("walked_at")
+        .eq("walk_type", "pee_poop")
+        .order("walked_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (poopData) {
+        setLastPoopTime(new Date(poopData.walked_at));
       }
     };
     loadLastWalk();
@@ -240,15 +252,13 @@ const Index = () => {
     }, 1000);
     return () => clearInterval(interval);
   }, [checkQuietHours, timerPaused]);
-  const handleWalkConfirm = async (walkedBy: string[]) => {
+  const handleWalkConfirm = async (walkType: WalkType) => {
     const now = new Date();
 
-    // Save to database
-    const {
-      error
-    } = await supabase.from("walks").insert({
-      walked_by: walkedBy,
-      walked_at: now.toISOString()
+    const { error } = await supabase.from("walks").insert({
+      walked_by: [],
+      walked_at: now.toISOString(),
+      walk_type: walkType,
     });
     if (error) {
       toast.error("Failed to save walk");
@@ -256,12 +266,16 @@ const Index = () => {
       return;
     }
 
-    // Update UI
     setLastWalkTime(now);
     setTimeRemaining(FOUR_HOURS_IN_MS);
-    setTimerPaused(false); // Resume timer after a walk
+    setTimerPaused(false);
     setIsDialogOpen(false);
-    toast.success(`Walk recorded! ${walkedBy.join(", ")} walked the dog 🐕`);
+    if (walkType === "pee_poop") {
+      setLastPoopTime(now);
+      toast.success("Walk recorded! Peed + 💩ed 🐕");
+    } else {
+      toast.success("Walk recorded! Peed 💦");
+    }
   };
 
   // Format time remaining (HH:MM:SS)
@@ -295,6 +309,22 @@ const Index = () => {
     } else {
       return date.toLocaleString();
     }
+  };
+
+  // Short elapsed format for compact display: e.g. "3h 12m" or "45m"
+  const formatElapsedShort = (date: Date | null) => {
+    if (!date) return "—";
+    const diffMs = currentTime.getTime() - date.getTime();
+    if (diffMs < 0) return "just now";
+    const totalMins = Math.floor(diffMs / 60000);
+    const hours = Math.floor(totalMins / 60);
+    const mins = totalMins % 60;
+    if (hours >= 24) {
+      const days = Math.floor(hours / 24);
+      return `${days}d ${hours % 24}h`;
+    }
+    if (hours > 0) return `${hours}h ${mins}m`;
+    return `${mins}m`;
   };
 
   // Dev function: set timer to 5 seconds
@@ -423,6 +453,12 @@ const Index = () => {
                   </div>
                   <div className="text-muted-foreground text-sm">
                     Last walk: {formatLastWalk(lastWalkTime)}
+                  </div>
+                  <div className="mt-2 flex items-center gap-1.5 text-muted-foreground text-xs">
+                    <span>💩</span>
+                    <span className="tabular-nums">
+                      {lastPoopTime ? `${formatElapsedShort(lastPoopTime)} ago` : "No poop logged"}
+                    </span>
                   </div>
                   {isOverdue && (
                     <div className="mt-3 text-destructive text-base font-bold animate-pulse">
